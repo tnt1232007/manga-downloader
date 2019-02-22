@@ -1,0 +1,38 @@
+{
+  "manifest_version": 2,
+  "name": "Manga Downloader",
+  "version": "1.0",
+  "description": "Download images from multiple tabs into seperate folders",
+  "icons": {
+    "16": "assets/Icon-16.png",
+    "48": "assets/Icon-48.png",
+    "128": "assets/Icon-128.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "16": "assets/Icon-16.png",
+      "32": "assets/Icon-32.png"
+    },
+    "default_popup": "index.html",
+    "default_title": "Manga Downloader"
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": false
+  },
+  "permissions": [
+    "tabs",
+    "storage",
+    "downloads",
+    "<all_urls>"
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+  "web_accessible_resources": [
+    "assets/css/*",
+    "assets/js/*",
+    "assets/fonts/*"
+  ],
+  "author": "TNT - tnt1232007@gmail.com"
+}

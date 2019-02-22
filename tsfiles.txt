@@ -1,0 +1,2 @@
+./src/background.ts
+./src/images.ts

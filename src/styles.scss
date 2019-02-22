@@ -1,1 +1,25 @@
 /* You can add global styles to this file, and also import other style files */
+$border-radius:    0;
+$border-radius-lg: 0;
+$border-radius-sm: 0;
+
+@import "~bootstrap/scss/bootstrap.scss";
+@import "~@fortawesome/fontawesome-free/css/fontawesome.min.css";
+@import "~@fortawesome/fontawesome-free/css/solid.min.css";
+
+html, body {
+  width: 400px;
+  height: 100%;
+}
+
+.btn-group-toggle {
+  @each $color, $value in $theme-colors {
+    .btn-outline-#{$color}:hover:not(.disabled):not(:disabled) {
+      @include button-outline-variant(rgba(red($value), green($value), blue($value), 0.4));
+    }
+
+    .btn-outline-#{$color}.active:hover:not(.disabled):not(:disabled) {
+      @include button-outline-variant(rgba(red($value), green($value), blue($value), 0.7));
+    }
+  }
+}

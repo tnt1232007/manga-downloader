@@ -1,0 +1,11 @@
+<form (ngSubmit)="submit(f);" #f="ngForm">
+  <div class="btn-group-vertical btn-group-toggle w-100 mb-3">
+    <label *ngFor="let tab of tabs; let i = index;" class="btn-outline-primary list-group-item text-left" ngbButtonLabel>
+      <input type="checkbox" ngbButton name="tabs-{{tab.id}}" [(ngModel)]="tab.selected">
+      <h6 class="text-truncate">{{i+1}}. {{tab.title}}</h6>
+      <small class="d-block text-truncate">{{tab.url}}</small>
+      <small class="d-block" *ngIf="tab.progress">{{tab.progress.loaded}}/{{tab.progress.total}}</small>
+    </label>
+  </div>
+  <button type="submit" class="btn btn-lg btn-primary btn-block">Download</button>
+</form>
