@@ -1,6 +1,7 @@
 import { AppTab } from './app/model/app-tab';
 import { AppImage } from './app/model/app-image';
 
+const fileRegEx = /[?!/\\:\*\?"<|>\|]/g;
 const extRegEx = /(?:\.([^.]+))?$/;
 const tabs: AppTab[] = [];
 
@@ -32,7 +33,7 @@ function downloadFiles(tab: AppTab, files: any[], index: number = 0, callback: (
   }
 
   const determiningFilenameCb = (item: chrome.downloads.DownloadItem, suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void) =>
-    suggest({ filename: `${tab.title}/Image-${index + 1}.${extRegEx.exec(item.filename)[1]}` });
+    suggest({ filename: `${tab.title.replace(fileRegEx, '')}/Image-${index + 1}.${extRegEx.exec(item.filename)[1]}` });
   chrome.downloads.onDeterminingFilename.addListener(determiningFilenameCb);
   chrome.downloads.download({ 'url': files[index].src }, id => {
     const changedCb = (delta: chrome.downloads.DownloadDelta) => {
