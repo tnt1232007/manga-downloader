@@ -3,16 +3,20 @@ import { AppImage } from './app/model/app-image';
 
 const fileRegEx = /[?!/\\:\*\?"<|>\|]/g;
 const extRegEx = /(?:\.([^.]+))?$/;
-const tabs: AppTab[] = [];
+let tabs: AppTab[] = [];
 
-chrome.runtime.onMessage.addListener(function (request, _sender, _sendResponse) {
-  if (request.method == 'download' && request.value) {
+chrome.runtime.onMessage.addListener(function (request, _sender, sendResponse) {
+  if (request.method === 'download' && request.value) {
     tabs.push(...request.value);
     downloadTabs(request.value);
+  } else if (request.method === 'history') {
+    sendResponse(tabs);
+  } else if (request.method === 'clear') {
+    tabs = [];
   }
 });
 
-function downloadTabs(tabs: AppTab[], index: number = 0) : void {
+function downloadTabs(tabs: AppTab[], index: number = 0): void {
   if (index >= tabs.length) {
     return;
   }
@@ -23,8 +27,9 @@ function downloadTabs(tabs: AppTab[], index: number = 0) : void {
   });
 }
 
-function downloadFiles(tab: AppTab, files: any[], index: number = 0, callback: () => void = null) : void {
+function downloadFiles(tab: AppTab, files: any[], index: number = 0, callback: () => void = null): void {
   tab.progress = { loaded: index, total: files.length };
+  chrome.runtime.sendMessage({ method: 'tabsChanged', value: tabs });
   if (tab.progress.loaded >= tab.progress.total) {
     // TODO: configurable
     chrome.tabs.remove(tab.id);

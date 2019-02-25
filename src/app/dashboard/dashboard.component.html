@@ -1,11 +1,46 @@
-<form (ngSubmit)="submit(f);" #f="ngForm">
-  <div class="btn-group-vertical btn-group-toggle w-100 mb-3">
-    <label *ngFor="let tab of tabs; let i = index;" class="btn-outline-primary list-group-item text-left" ngbButtonLabel>
-      <input type="checkbox" ngbButton name="tabs-{{tab.id}}" [(ngModel)]="tab.selected">
+<ngb-tabset #t="ngbTabset">
+  <ngb-tab id="ongoingTab" title="Ongoing" *ngIf="ongoingTabs.length">
+    <ng-template ngbTabContent>
+      <ng-container *ngTemplateOutlet="displayTabsTemplate; context: {$implicit: ongoingTabs}"></ng-container>
+    </ng-template>
+  </ngb-tab>
+  <ngb-tab id="newTab" title="New" *ngIf="newTabs.length">
+    <ng-template ngbTabContent>
+      <ng-container *ngTemplateOutlet="downloadTabsTemplate; context: {$implicit: newTabs}"></ng-container>
+    </ng-template>
+  </ngb-tab>
+  <ngb-tab id="historyTab" title="History" *ngIf="completedTabs.length || !newTabs.length">
+    <ng-template ngbTabContent>
+      <ng-container *ngTemplateOutlet="completedTabsTemplate; context: {$implicit: completedTabs}"></ng-container>
+    </ng-template>
+  </ngb-tab>
+</ngb-tabset>
+
+<ng-template #displayTabsTemplate let-tabs>
+  <div class="btn-group-vertical w-100 mb-3">
+    <label *ngFor="let tab of tabs; let i = index;" class="list-group-item text-left w-100">
       <h6 class="text-truncate">{{i+1}}. {{tab.title}}</h6>
       <small class="d-block text-truncate">{{tab.url}}</small>
-      <small class="d-block" *ngIf="tab.progress">{{tab.progress.loaded}}/{{tab.progress.total}}</small>
+      <ngb-progressbar *ngIf="tab.progress" type="success" [value]="tab.progress.loaded*100/tab.progress.total" [striped]="true" [animated]="tab.progress.loaded != tab.progress.total">{{tab.progress.loaded}}/{{tab.progress.total}}</ngb-progressbar>
+      <ngb-progressbar *ngIf="!tab.progress" type="warning" [value]="100" [striped]="true" [animated]="true">Queue</ngb-progressbar>
     </label>
   </div>
-  <button type="submit" class="btn btn-lg btn-primary btn-block">Download</button>
-</form>
+</ng-template>
+
+<ng-template #downloadTabsTemplate let-tabs>
+  <form (ngSubmit)="submit(f)" #f="ngForm">
+    <div class="btn-group-vertical btn-group-toggle w-100 mb-3">
+      <label *ngFor="let tab of tabs; let i = index;" class="list-group-item text-left w-100 btn-outline-primary" ngbButtonLabel>
+        <input type="checkbox" ngbButton name="tabs-{{tab.id}}" [(ngModel)]="tab.selected">
+        <h6 class="text-truncate">{{i+1}}. {{tab.title}}</h6>
+        <small class="d-block text-truncate">{{tab.url}}</small>
+      </label>
+    </div>
+    <button type="submit" class="btn btn-lg btn-primary btn-block">Download</button>
+  </form>
+</ng-template>
+
+<ng-template #completedTabsTemplate let-tabs>
+  <ng-container *ngTemplateOutlet="displayTabsTemplate; context: {$implicit: tabs}"></ng-container>
+  <button *ngIf="completedTabs.length" type="button" class="btn btn-lg btn-primary btn-block" (click)="clear()">Clear</button>
+</ng-template>
