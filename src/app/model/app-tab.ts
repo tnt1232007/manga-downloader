@@ -15,6 +15,5 @@ export class AppTab {
     this.id = tab.id;
     this.title = tab.title;
     this.url = tab.url;
-    this.selected = true;
   }
 }

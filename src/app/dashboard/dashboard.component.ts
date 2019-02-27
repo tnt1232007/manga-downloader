@@ -34,7 +34,7 @@ export class DashboardComponent implements OnInit {
       }
     });
 
-    //TODO: configurable .filter(file => file.height > 300 && file.width > 300), w-h sometimes 0
+    //TODO: configurable
     const sizeFilter = (image: AppImage) => image.height === 0 || image.width === 0 || (image.height > 300 && image.width > 300);
     const extFilter = (image: AppImage) => ['png', 'jpg', 'jpeg', 'bmp'].some(v => image.src.endsWith(v));
     chrome.tabs.query({ currentWindow: true }, tabs => {
@@ -46,7 +46,10 @@ export class DashboardComponent implements OnInit {
         const tab = this.newTabs[i];
         chrome.tabs.executeScript(tab.id, { file: 'images.js' }, (results: AppImage[][]) => {
           console.log(results);
-          this.ngZone.run(() => tab.images = results[0].filter(image => sizeFilter(image) && extFilter(image)));
+          this.ngZone.run(() => {
+            tab.images = results[0].filter(image => sizeFilter(image) && extFilter(image));
+            tab.selected = tab.images.length > 0;
+          });
         });
       }
     });

@@ -31,7 +31,7 @@
   <form (ngSubmit)="submit(f)" #f="ngForm">
     <div class="btn-group-vertical btn-group-toggle w-100 mb-3">
       <label *ngFor="let tab of tabs; let i = index;" class="list-group-item text-left w-100 btn-outline-primary" ngbButtonLabel>
-        <input type="checkbox" ngbButton name="tabs-{{tab.id}}" [(ngModel)]="tab.selected">
+        <input type="checkbox" ngbButton name="tabs-{{tab.id}}" [disabled]="!tab.images || tab.images.length === 0" [(ngModel)]="tab.selected">
         <h6 class="text-truncate">{{i+1}}. {{tab.title}}</h6>
         <small class="d-block text-truncate"><a [href]="tab.url" target="_blank">{{tab.url}}</a></small>
         <small *ngIf="tab.images">Found {{tab.images.length}} images</small>
