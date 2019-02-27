@@ -9,14 +9,19 @@ enum ImageType {
 }
 
 function extractAll(): AppImage[] {
-  const imgLst: AppImage[] = [
-    ...extractImgs(document.getElementsByTagName('img'), source => source.src),
-    ...extractImgs(document.images, source => source.currentSrc),
-    ...extractImgs(document.getElementsByTagName('source'), source => source.srcset),
-    ...extractInputImgs(document.getElementsByTagName('input')),
-    ...extractLinkImgs(document.getElementsByTagName('a')),
-  ];
-  return imgLst.filter((value, index, array) => array.findIndex(item => item.src === value.src) === index);
+  try {
+    const imgLst: AppImage[] = [
+      ...extractImgs(document.getElementsByTagName('img'), source => source.src),
+      ...extractImgs(document.images, source => source.currentSrc),
+      ...extractImgs(document.getElementsByTagName('source'), source => source.srcset),
+      ...extractInputImgs(document.getElementsByTagName('input')),
+      ...extractLinkImgs(document.getElementsByTagName('a')),
+    ];
+    return imgLst.filter((value, index, array) => array.findIndex(item => item.src === value.src) === index);
+  }
+  catch(error) {
+    return error;
+  }
 }
 
 function extractImgs<T extends HTMLImageElement | HTMLSourceElement>(sources: HTMLCollectionOf<T>, srcSelector: (source: T) => string): AppImage[] {

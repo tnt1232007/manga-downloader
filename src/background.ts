@@ -2,32 +2,28 @@ import { AppTab } from './app/model/app-tab';
 import { AppImage } from './app/model/app-image';
 
 const fileRegEx = /[?!/\\:\*\?"<|>\|]/g;
-const extRegEx = /(?:\.([^.]+))?$/;
-let tabs: AppTab[] = [];
-
-chrome.runtime.onMessage.addListener(function (request, _sender, sendResponse) {
-  if (request.method === 'download' && request.value) {
-    tabs.push(...request.value);
-    downloadTabs(request.value);
-  } else if (request.method === 'history') {
-    sendResponse(tabs);
-  } else if (request.method === 'clear') {
-    tabs = [];
-  }
+let tabs: AppTab[];
+chrome.storage.local.get(['history'], result => {
+  tabs = result['history'] || [];
+  chrome.runtime.onMessage.addListener(function (request, _sender, sendResponse) {
+    if (request.method === 'download' && request.value) {
+      tabs.push(...request.value);
+      downloadTabs(request.value);
+    } else if (request.method === 'clear') {
+      tabs = tabs.filter(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
+      chrome.storage.local.remove('history');
+    }
+  });
 });
 
 function downloadTabs(tabs: AppTab[], index: number = 0): void {
   if (index >= tabs.length) {
     return;
   }
-  chrome.tabs.executeScript(tabs[index].id, { file: 'images.js' }, (results: AppImage[][]) => {
-    // TODO: configurable
-    const files = results[0].filter(file => file.height > 300 && file.width > 300);
-    downloadFiles(tabs[index], files, 0, () => downloadTabs(tabs, index + 1));
-  });
+  downloadFiles(tabs[index], tabs[index].images, 0, () => downloadTabs(tabs, index + 1));
 }
 
-function downloadFiles(tab: AppTab, files: any[], index: number = 0, callback: () => void = null): void {
+function downloadFiles(tab: AppTab, files: AppImage[], index: number = 0, callback: () => void = null): void {
   tab.progress = { loaded: index, total: files.length };
   chrome.runtime.sendMessage({ method: 'tabsChanged', value: tabs });
   if (tab.progress.loaded >= tab.progress.total) {
@@ -37,8 +33,11 @@ function downloadFiles(tab: AppTab, files: any[], index: number = 0, callback: (
     return;
   }
 
-  const determiningFilenameCb = (item: chrome.downloads.DownloadItem, suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void) =>
-    suggest({ filename: `${tab.title.replace(fileRegEx, '')}/Image-${index + 1}.${extRegEx.exec(item.filename)[1]}` });
+  const determiningFilenameCb = (item: chrome.downloads.DownloadItem, suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void) => {
+    const folderName = tab.title.replace(fileRegEx, '');
+    const indexStr = (index + 1).toString().padStart(3, '0');
+    return suggest({ filename: `${folderName}/${indexStr}-${item.filename}` });
+  };
   chrome.downloads.onDeterminingFilename.addListener(determiningFilenameCb);
   chrome.downloads.download({ 'url': files[index].src }, id => {
     const changedCb = (delta: chrome.downloads.DownloadDelta) => {

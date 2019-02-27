@@ -9,6 +9,7 @@ $border-radius-sm: 0;
 
 html, body {
   width: 400px;
+  min-height: 600px;
   height: 100%;
 }
 
@@ -21,5 +22,9 @@ html, body {
     .btn-outline-#{$color}.active:hover:not(.disabled):not(:disabled) {
       @include button-outline-variant(rgba(red($value), green($value), blue($value), 0.7));
     }
+  }
+
+  a {
+    @extend .text-reset;
   }
 }

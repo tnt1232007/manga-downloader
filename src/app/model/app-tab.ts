@@ -1,11 +1,14 @@
 /// <reference types="chrome"/>
 
+import { AppImage } from './app-image';
+
 export class AppTab {
   index: number;
   id: number;
   title: string;
   url: string;
   selected: boolean;
+  images: AppImage[];
   progress: ProgressEventInit;
 
   constructor(tab: chrome.tabs.Tab) {

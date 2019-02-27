@@ -4,11 +4,11 @@
   "scripts": {
     "ng": "ng",
     "build": "ng build --output-path dist",
-    "tsc": "tsc --target ES6 --outDir dist --sourceMap @tsfiles.txt",
+    "tsc": "tsc --target es2017 --outDir dist --sourceMap @tsfiles.txt",
     "watch": "npm run build -- --watch",
     "watchtsc": "npm run tsc -- --watch",
     "zip": "cd dist && bestzip ../dist.zip *",
-    "buildprod": "ng build --prod --output-path %npm_package_name%-%npm_package_version% & tsc --target ES6 --outdir %npm_package_name%-%npm_package_version% --sourceMap @tsfiles.txt",
+    "buildprod": "ng build --prod --output-path %npm_package_name%-%npm_package_version% & tsc --target es2017 --outdir %npm_package_name%-%npm_package_version% --sourceMap @tsfiles.txt",
     "zipprod": "cd %npm_package_name%-%npm_package_version% && bestzip ../%npm_package_name%-%npm_package_version%.zip *",
     "publish": "npm run buildprod & npm run zipprod",
     "postbuild": "npm run tsc"
