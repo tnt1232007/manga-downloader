@@ -1,7 +1,6 @@
 import { AppTab } from './app/model/app-tab';
 import { AppImage } from './app/model/app-image';
 
-const fileRegEx = /[?!/\\:\*\?"<|>\|]/g;
 let tabs: AppTab[];
 chrome.storage.local.get(['history'], result => {
   tabs = result['history'] || [];
@@ -34,7 +33,9 @@ function downloadFiles(tab: AppTab, files: AppImage[], index: number = 0, callba
   }
 
   const determiningFilenameCb = (item: chrome.downloads.DownloadItem, suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void) => {
-    const folderName = tab.title.replace(fileRegEx, '');
+    //TODO: configurable
+    const folderRegEx = /[^A-z0-9-_ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệếỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ ]/g;
+    const folderName = tab.title.replace(folderRegEx, '');
     const indexStr = (index + 1).toString().padStart(3, '0');
     return suggest({ filename: `${folderName}/${indexStr}-${item.filename}` });
   };
