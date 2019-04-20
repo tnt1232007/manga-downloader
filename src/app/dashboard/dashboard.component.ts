@@ -38,7 +38,7 @@ export class DashboardComponent implements OnInit {
     const SizeFilter = 300;
     const ExtFilter = ['.png', '.jpg', '.jpeg'];
     const sizeFilter = (image: AppImage) => image.height > SizeFilter && image.width > SizeFilter;
-    const extFilter = (image: AppImage) => ExtFilter.some(v => image.src.indexOf(v) >= 0);
+    const extFilter = (image: AppImage) => ExtFilter.some(v => image.src.toLowerCase().indexOf(v) >= 0);
     chrome.tabs.query({ currentWindow: true }, tabs => {
       this.ngZone.run(() => this.newTabs = tabs
         .filter(tab => !!tab.url)
