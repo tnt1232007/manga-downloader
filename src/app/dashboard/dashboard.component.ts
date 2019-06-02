@@ -5,6 +5,7 @@ import { NgForm } from '@angular/forms';
 import { NgbTabset } from '@ng-bootstrap/ng-bootstrap';
 import { AppTab } from '../model/app-tab';
 import { AppImage } from '../model/app-image';
+import { AppRequest } from '../model/app-request';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,13 +23,14 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     chrome.storage.local.get(['history'], result => this.ngZone.run(() => this.completedTabs = result['history'] || []));
 
-    chrome.runtime.onMessage.addListener((request, _sender, _sendResponse) => {
+    chrome.runtime.onMessage.addListener((request: AppRequest, _sender, _sendResponse) => {
       if (request.method === 'tabsChanged' && request.value) {
-        const tabs: AppTab[] = request.value;
+        const allTabs: AppTab[] = request.value;
         this.ngZone.run(() => {
-          this.newTabs = this.newTabs.filter((tab: AppTab) => !tabs.some((tab_: AppTab) => tab_.id === tab.id));
-          this.ongoingTabs = tabs.filter((tab: AppTab) => !(tab.progress && tab.progress.loaded === tab.progress.total));
-          this.completedTabs = tabs.filter((tab: AppTab) => tab.progress && tab.progress.loaded === tab.progress.total);
+          console.log(allTabs);
+          this.newTabs = this.newTabs.filter((tab: AppTab) => !allTabs.some((tab_: AppTab) => tab_.id === tab.id));
+          this.ongoingTabs = allTabs.filter((tab: AppTab) => !(tab.progress && tab.progress.loaded === tab.progress.total));
+          this.completedTabs = allTabs.filter((tab: AppTab) => tab.progress && tab.progress.loaded === tab.progress.total);
           chrome.storage.local.set({ 'history': this.completedTabs });
         });
       }
@@ -47,7 +49,7 @@ export class DashboardComponent implements OnInit {
       for (let i = 0; i < this.newTabs.length; i++) {
         const tab = this.newTabs[i];
         chrome.tabs.executeScript(tab.id, { file: 'images.js' }, (results: AppImage[][]) => {
-          console.log(results);
+          console.log(results[0]);
           this.ngZone.run(() => {
             tab.images = results[0].filter(image => sizeFilter(image) && extFilter(image));
             tab.selected = tab.images.length > 0;

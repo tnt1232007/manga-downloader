@@ -18,9 +18,8 @@ function extractAll(): AppImage[] {
       ...extractLinkImgs(document.getElementsByTagName('a')),
     ];
     return imgLst.filter((value, index, array) => array.findIndex(item => item.src === value.src) === index);
-  }
-  catch(error) {
-    return error;
+  } catch (error) {
+    return [error];
   }
 }
 
@@ -35,9 +34,10 @@ function extractImgs<T extends HTMLImageElement | HTMLSourceElement>(sources: HT
 
       let w = Math.max(img.width, img.naturalWidth);
       let h = Math.max(img.height, img.naturalHeight);
-      imgLst.push({ type: ImageType.IMG, src: img.src, width: w, height: h });
+      const image = <AppImage>{ type: ImageType.IMG, src: img.src, width: w, height: h };
+      imgLst.push(image);
     } catch (error) {
-      console.debug(sources[i]);
+      throw error;
     }
   }
   return imgLst;
@@ -48,7 +48,8 @@ function extractInputImgs<T extends HTMLInputElement>(sources: HTMLCollectionOf<
   for (var i = 0; i < sources.length; i++) {
     var input = sources[i];
     if (input.type.toUpperCase() === 'IMAGE') {
-      imgLst.push({ type: ImageType.INPUT_IMG, src: input.src, width: 0, height: 0 });
+      const image = <AppImage>{ type: ImageType.INPUT_IMG, src: input.src, width: 0, height: 0 };
+      imgLst.push(image);
     }
   }
   return imgLst;
@@ -60,7 +61,8 @@ function extractLinkImgs<T extends HTMLAnchorElement>(sources: HTMLCollectionOf<
     var link = sources[i];
     var href = link.href;
     if (href.endsWith('.jpg') || href.endsWith('.jpeg') || href.endsWith('.bmp') || href.endsWith('.ico') || href.endsWith('.gif') || href.endsWith('.png')) {
-      imgLst.push({ type: ImageType.LINK, src: href, width: 0, height: 0 });
+      const image = <AppImage>{ type: ImageType.LINK, src: href, width: 0, height: 0 };
+      imgLst.push(image);
     }
   }
   return imgLst;

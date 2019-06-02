@@ -9,6 +9,8 @@ export enum ImageType {
 export class AppImage {
   type: ImageType;
   src: string;
+  data: any;
+  name: string;
   width: number;
   height: number;
 }
