@@ -3,26 +3,20 @@ import { AppImage } from './app/model/app-image';
 import { AppRequest } from './app/model/app-request';
 
 let allTabs: AppTab[];
-let tabIndex: number = 0;
 let imageIndex: number = 0;
-let isDownloading: boolean = false;
 chrome.storage.local.get(['history'], result => {
   allTabs = result['history'] || [];
   chrome.runtime.onMessage.addListener(function (request: AppRequest, _sender, _sendResponse) {
     if (request.method === 'download' && request.value) {
       const tabs: AppTab[] = request.value;
       allTabs.push(...tabs);
-      if (isDownloading) {
-        return;
-      }
-
-      isDownloading = true;
       downloadImageInContentScript();
     } else if (request.method === 'blob-download' && request.value) {
+      const tab = allTabs.find(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
       const image: AppImage = request.value;
-      if (allTabs[tabIndex].images[imageIndex].data)
+      if (tab.images[imageIndex].data)
         return;
-      allTabs[tabIndex].images[imageIndex] = image;
+      tab.images[imageIndex] = image;
       downloadImageAsFile();
     } else if (request.method === 'clear') {
       allTabs = allTabs.filter(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
@@ -32,7 +26,7 @@ chrome.storage.local.get(['history'], result => {
 });
 
 function downloadImageInContentScript() {
-  const tab = allTabs[tabIndex];
+  const tab = allTabs.find(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
   if (!tab)
     return;
   tab.progress = { loaded: imageIndex, total: tab.images.length };
@@ -40,35 +34,28 @@ function downloadImageInContentScript() {
   if (tab.progress.loaded >= tab.progress.total) {
     // TODO: configurable
     chrome.tabs.remove(tab.id);
-    tabIndex += 1;
     imageIndex = 0;
-    if (tabIndex >= allTabs.length) {
-      isDownloading = false;
-      return;
-    } else {
-      downloadImageInContentScript();
-    }
+    downloadImageInContentScript();
   }
-  chrome.tabs.get(tab.id, t => {
-    if (t) {
-      chrome.tabs.sendMessage(t.id, { method: 'xhr-download', value: tab.images[imageIndex] });
+  chrome.tabs.get(tab.id, found => {
+    if (found) {
+      chrome.tabs.sendMessage(found.id, { method: 'xhr-download', value: tab.images[imageIndex] });
     } else {
-      tabIndex += 1;
+      allTabs = allTabs.filter(t => t.id !== tab.id)
       downloadImageInContentScript();
     }
   });
 }
 
 function downloadImageAsFile() {
-  const tab = allTabs[tabIndex];
+  const tab = allTabs.find(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
   const image = tab.images[imageIndex];
-  console.log(image);
-  const determiningFilenameCb = (_: chrome.downloads.DownloadItem, suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void) => {
+  const determiningFilenameCb = (item: chrome.downloads.DownloadItem, suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void) => {
     //TODO: configurable
     const folderRegEx = /[^A-z0-9-_ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệếỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ ]/g;
     const folderName = tab.title.replace(folderRegEx, '');
     const indexStr = (imageIndex + 1).toString().padStart(3, '0');
-    return suggest({ filename: `${folderName}/${indexStr}-${image.name}` });
+    return suggest({ filename: `${folderName}/${indexStr}-${image.name || item.filename}` });
   };
   if (!chrome.downloads.onDeterminingFilename.hasListeners()) {
     chrome.downloads.onDeterminingFilename.addListener(determiningFilenameCb);
