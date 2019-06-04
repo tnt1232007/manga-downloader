@@ -27,8 +27,10 @@ chrome.storage.local.get(['history'], result => {
 
 function downloadImageInContentScript() {
   const tab = allTabs.find(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
-  if (!tab)
+  if (!tab) {
+    chrome.storage.local.set({ 'history': allTabs });
     return;
+  }
   tab.progress = { loaded: imageIndex, total: tab.images.length };
   chrome.runtime.sendMessage({ method: 'tabsChanged', value: allTabs });
   if (tab.progress.loaded >= tab.progress.total) {

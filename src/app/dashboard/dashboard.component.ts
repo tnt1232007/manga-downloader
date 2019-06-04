@@ -31,7 +31,6 @@ export class DashboardComponent implements OnInit {
           this.newTabs = this.newTabs.filter((tab: AppTab) => !allTabs.some((tab_: AppTab) => tab_.id === tab.id));
           this.ongoingTabs = allTabs.filter((tab: AppTab) => !(tab.progress && tab.progress.loaded === tab.progress.total));
           this.completedTabs = allTabs.filter((tab: AppTab) => tab.progress && tab.progress.loaded === tab.progress.total);
-          chrome.storage.local.set({ 'history': this.completedTabs });
         });
       }
     });
