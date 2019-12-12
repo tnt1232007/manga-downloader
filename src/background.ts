@@ -38,22 +38,22 @@ function downloadImageInContentScript() {
     chrome.tabs.remove(tab.id);
     imageIndex = 0;
     downloadImageInContentScript();
+  } else {
+    chrome.tabs.get(tab.id, found => {
+      if (found) {
+        chrome.tabs.sendMessage(found.id, { method: 'xhr-download', value: tab.images[imageIndex] });
+      } else {
+        allTabs = allTabs.filter(t => t.id !== tab.id)
+        downloadImageInContentScript();
+      }
+    });
   }
-  chrome.tabs.get(tab.id, found => {
-    if (found) {
-      chrome.tabs.sendMessage(found.id, { method: 'xhr-download', value: tab.images[imageIndex] });
-    } else {
-      allTabs = allTabs.filter(t => t.id !== tab.id)
-      downloadImageInContentScript();
-    }
-  });
 }
 
 function downloadImageAsFile() {
   const tab = allTabs.find(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
   const image = tab.images[imageIndex];
   const determiningFilenameCb = (item: chrome.downloads.DownloadItem, suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void) => {
-    //TODO: configurable
     const folderRegEx = /[^A-z0-9-_ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệếỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ ]/g;
     const folderName = tab.title.replace(folderRegEx, '');
     const indexStr = (imageIndex + 1).toString().padStart(3, '0');

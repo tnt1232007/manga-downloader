@@ -27,7 +27,6 @@ export class DashboardComponent implements OnInit {
       if (request.method === 'tabsChanged' && request.value) {
         const allTabs: AppTab[] = request.value;
         this.ngZone.run(() => {
-          console.log(allTabs);
           this.newTabs = this.newTabs.filter((tab: AppTab) => !allTabs.some((tab_: AppTab) => tab_.id === tab.id));
           this.ongoingTabs = allTabs.filter((tab: AppTab) => !(tab.progress && tab.progress.loaded === tab.progress.total));
           this.completedTabs = allTabs.filter((tab: AppTab) => tab.progress && tab.progress.loaded === tab.progress.total);
@@ -37,7 +36,7 @@ export class DashboardComponent implements OnInit {
 
     //TODO: configurable
     const SizeFilter = 300;
-    const ExtFilter = ['.png', '.jpg', '.jpeg'];
+    const ExtFilter = ['.jpg','.jpeg','.png','.bmp','.gif'];
     const sizeFilter = (image: AppImage) => image.height > SizeFilter && image.width > SizeFilter;
     const extFilter = (image: AppImage) => ExtFilter.some(v => image.src.toLowerCase().indexOf(v) >= 0);
     chrome.tabs.query({ currentWindow: true }, tabs => {
@@ -48,7 +47,6 @@ export class DashboardComponent implements OnInit {
       for (let i = 0; i < this.newTabs.length; i++) {
         const tab = this.newTabs[i];
         chrome.tabs.executeScript(tab.id, { file: 'images.js' }, (results: AppImage[][]) => {
-          console.log(results[0]);
           this.ngZone.run(() => {
             tab.images = results[0].filter(image => sizeFilter(image) && extFilter(image));
             tab.selected = tab.images.length > 0;

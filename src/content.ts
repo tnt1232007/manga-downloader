@@ -1,11 +1,10 @@
-import { AppRequest } from "./app/model/app-request";
+import { AppRequest } from './app/model/app-request';
 import { AppImage } from './app/model/app-image';
 
 chrome.runtime.onMessage.addListener((request: AppRequest, _sender, _sendResponse) => {
   if (request.method === 'xhr-download' && request.value) {
     const image: AppImage = request.value;
     const xhr = new XMLHttpRequest();
-    console.log(image);
     xhr.responseType = 'blob';
     xhr.addEventListener('load', _ => {
       if (xhr.status === 200) {

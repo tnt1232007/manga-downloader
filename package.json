@@ -1,6 +1,6 @@
 {
   "name": "manga-downloader",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "scripts": {
     "ng": "ng",
     "build": "ng build --output-path dist",
@@ -23,11 +23,11 @@
     "@angular/platform-browser": "^7.2.15",
     "@angular/platform-browser-dynamic": "^7.2.15",
     "@angular/router": "^7.2.15",
-    "@ng-bootstrap/ng-bootstrap": "^4.2.0",
-    "@types/source-map": "^0.5.2",
+    "@ng-bootstrap/ng-bootstrap": "^4.2.2",
+    "@types/source-map": "^0.5.7",
     "core-js": "2.5.4",
-    "rxjs": "^6.5.2",
-    "tslib": "^1.9.0",
+    "rxjs": "^6.5.3",
+    "tslib": "^1.10.0",
     "zone.js": "0.8.26"
   },
   "devDependencies": {
@@ -35,12 +35,13 @@
     "@angular/cli": "^7.3.9",
     "@angular/compiler-cli": "^7.2.15",
     "@angular/language-service": "^7.2.15",
-    "@fortawesome/fontawesome-free": "^5.8.2",
+    "@fortawesome/fontawesome-free": "^5.12.0",
     "@types/chrome": "0.0.77",
     "@types/node": "8.9.4",
-    "bestzip": "^2.1.4",
-    "bootstrap": "^4.3.1",
-    "node-sass": "^4.12.0",
+    "bestzip": "^2.1.5",
+    "bootstrap": "^4.4.1",
+    "codelyzer": "^5.2.0",
+    "node-sass": "^4.13.0",
     "ts-node": "7.0.0",
     "tslint": "5.11.0",
     "typescript": "3.1.6"

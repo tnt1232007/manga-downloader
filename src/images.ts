@@ -60,7 +60,8 @@ function extractLinkImgs<T extends HTMLAnchorElement>(sources: HTMLCollectionOf<
   for (var i = 0; i < sources.length; i++) {
     var link = sources[i];
     var href = link.href;
-    if (href.endsWith('.jpg') || href.endsWith('.jpeg') || href.endsWith('.bmp') || href.endsWith('.ico') || href.endsWith('.gif') || href.endsWith('.png')) {
+    const ExtFilter = ['.jpg','.jpeg','.png','.bmp','.gif'];
+    if (ExtFilter.some(v => href.toLowerCase().endsWith(v))) {
       const image = <AppImage>{ type: ImageType.LINK, src: href, width: 0, height: 0 };
       imgLst.push(image);
     }
