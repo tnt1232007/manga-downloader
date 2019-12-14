@@ -1,19 +1,31 @@
-<div class="container">
-  <form>
-    <div class="row">
-      <div class="col">
-        <input type="text" class="form-control" name="imgExt" id="imgExt" placeholder="List of comma separated extensions to download">
-      </div>
+<form [formGroup]="form" class="container mt-3">
+  <div class="form-row mb-3">
+    <div class="col">
+      <label for="imageExtensions">Image extensions</label>
+      <input
+        class="form-control"
+        type="text"
+        placeholder="List of comma separated extensions"
+        formControlName="imageExtensions"
+      />
     </div>
-    <div class="form-check form-check-inline row">
-      <label class="form-check-label">
-        <input class="form-check-input" type="checkbox" name="doCloseAfter" id="doCloseAfter" value="checkedValue"> Close tab after download
+  </div>
+  <div class="form-row mb-3">
+    <div class="col">
+      <label for="imageExtensions">Min width</label>
+      <input class="form-control" type="number" placeholder="In pixels" formControlName="minWidth" />
+    </div>
+    <div class="col">
+      <label for="imageExtensions">Min height</label>
+      <input class="form-control" type="number" placeholder="In pixels" formControlName="minHeight" />
+    </div>
+  </div>
+  <div class="form-group mb-3">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="closeAfter" formControlName="closeAfter" />
+      <label class="form-check-label" for="closeAfter">
+        Close after download
       </label>
     </div>
-    <div class="row">
-      <div class="offset-sm-2 col-sm-10">
-        <button type="submit" class="btn btn-primary">Action</button>
-      </div>
-    </div>
-  </form>
-</div>
+  </div>
+</form>

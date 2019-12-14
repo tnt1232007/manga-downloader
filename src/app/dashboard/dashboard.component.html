@@ -14,6 +14,11 @@
       <ng-container *ngTemplateOutlet="completedTabsTemplate; context: {$implicit: completedTabs}"></ng-container>
     </ng-template>
   </ngb-tab>
+  <ngb-tab id="settingTab" title="Settings">
+    <ng-template ngbTabContent>
+      <app-settings></app-settings>
+    </ng-template>
+  </ngb-tab>
 </ngb-tabset>
 
 <ng-template #displayTabsTemplate let-tabs>
