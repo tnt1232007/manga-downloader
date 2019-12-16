@@ -2,7 +2,7 @@
 
 import { Component, OnInit, NgZone, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { NgbTabset } from '@ng-bootstrap/ng-bootstrap';
+import { NgbTabset, NgbTabChangeEvent } from '@ng-bootstrap/ng-bootstrap';
 import { AppTab } from '../model/app-tab';
 import { AppImage } from '../model/app-image';
 import { AppRequest } from '../model/app-request';
@@ -21,10 +21,40 @@ export class DashboardComponent implements OnInit {
   constructor(private ngZone: NgZone) {}
 
   ngOnInit() {
-    chrome.storage.local.get(['history'], result =>
-      this.ngZone.run(() => (this.completedTabs = result['history'] || []))
-    );
+    this.loadNew();
+    this.subscribeBackgroundChanged();
+  }
 
+  public tabChanged($event: NgbTabChangeEvent) {
+    switch ($event.nextId) {
+      case 'newTab':
+        this.loadNew();
+        break;
+      case 'ongoingTab':
+        break;
+      case 'historyTab':
+        this.loadHistory();
+        break;
+      case 'settingsTab':
+        break;
+      default:
+        break;
+    }
+  }
+
+  public submit(_form: NgForm) {
+    const tabs = this.newTabs.filter(tab => tab.selected);
+    chrome.runtime.sendMessage({ method: 'download', value: tabs });
+    this.tabSet.select('ongoingTab');
+  }
+
+  public clear() {
+    chrome.runtime.sendMessage({ method: 'clear' });
+    this.ongoingTabs = [];
+    this.completedTabs = [];
+  }
+
+  private subscribeBackgroundChanged() {
     chrome.runtime.onMessage.addListener((request: AppRequest, _sender, _sendResponse) => {
       if (request.method === 'tabsChanged' && request.value) {
         const allTabs: AppTab[] = request.value;
@@ -39,19 +69,25 @@ export class DashboardComponent implements OnInit {
         });
       }
     });
+  }
 
+  private loadNew() {
     chrome.tabs.query({ currentWindow: true }, tabs => {
-      this.ngZone.run(
-        () =>
-          (this.newTabs = tabs
-            .filter(tab => !!tab.url)
-            .filter(tab => tab.url.startsWith('http') || tab.url.startsWith('https'))
-            .map(tab => new AppTab(tab)))
-      );
       chrome.storage.local.get(['settings'], result => {
         const settings = result['settings'];
+        if (!settings) {
+          this.ngZone.run(() => this.tabSet.select('settingsTab'));
+          return;
+        }
+
+        this.ngZone.run(() => this.newTabs = tabs
+          .filter(tab => !!tab.url)
+          .filter(tab => tab.url.startsWith('http') || tab.url.startsWith('https'))
+          .map(tab => new AppTab(tab))
+        );
         const imageExtensions = settings['imageExtensions'].split(',').map((ext: string) => '.' + ext);
-        const sizeFilter = (image: AppImage) => image.height > settings['minHeight'] && image.width > settings['minWidth'];
+        const sizeFilter = (image: AppImage) =>
+          image.height > settings['minHeight'] && image.width > settings['minWidth'];
         const extFilter = (image: AppImage) => imageExtensions.some(v => image.src.toLowerCase().indexOf(v) >= 0);
         for (let i = 0; i < this.newTabs.length; i++) {
           const tab = this.newTabs[i];
@@ -67,15 +103,9 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  submit(_form: NgForm) {
-    const tabs = this.newTabs.filter(tab => tab.selected);
-    chrome.runtime.sendMessage({ method: 'download', value: tabs });
-    this.tabSet.select('ongoingTab');
-  }
-
-  clear() {
-    chrome.runtime.sendMessage({ method: 'clear' });
-    this.ongoingTabs = [];
-    this.completedTabs = [];
+  private loadHistory() {
+    chrome.storage.local.get(['history'], result =>
+      this.ngZone.run(() => (this.completedTabs = result['history'] || []))
+    );
   }
 }

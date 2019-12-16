@@ -1,4 +1,4 @@
-<ngb-tabset #t="ngbTabset">
+<ngb-tabset #t="ngbTabset" (tabChange)="tabChanged($event)">
   <ngb-tab id="newTab" title="New">
     <ng-template ngbTabContent>
       <ng-container *ngTemplateOutlet="downloadTabsTemplate; context: {$implicit: newTabs}"></ng-container>
@@ -14,7 +14,7 @@
       <ng-container *ngTemplateOutlet="completedTabsTemplate; context: {$implicit: completedTabs}"></ng-container>
     </ng-template>
   </ngb-tab>
-  <ngb-tab id="settingTab" title="Settings">
+  <ngb-tab id="settingsTab" title="Settings">
     <ng-template ngbTabContent>
       <app-settings></app-settings>
     </ng-template>

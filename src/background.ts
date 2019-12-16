@@ -34,7 +34,7 @@ function downloadImageInContentScript() {
   chrome.runtime.sendMessage({ method: 'tabsChanged', value: allTabs });
   if (tab.progress.loaded >= tab.progress.total) {
     chrome.storage.local.get(['settings'], result => {
-      if (result['setting']['closeAfter']) {
+      if (result['settings']['closeAfter']) {
         chrome.tabs.remove(tab.id);
       }
     });

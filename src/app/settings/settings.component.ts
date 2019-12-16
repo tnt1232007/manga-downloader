@@ -10,34 +10,32 @@ import { FormGroup, FormBuilder } from '@angular/forms';
 })
 export class SettingsComponent implements OnInit {
   form: FormGroup;
+  defaultSettings: any = {
+    imageExtensions: 'jpg,jpeg,png,bmp,gif',
+    minWidth: 100,
+    minHeight: 100,
+    closeAfter: true,
+  };
 
-  constructor(private ngZone: NgZone, private formBuilder: FormBuilder) {}
+  constructor(private ngZone: NgZone, private formBuilder: FormBuilder) { }
 
   ngOnInit() {
-    this.form = this.formBuilder.group({
-      imageExtensions: 'jpg,jpeg,png,bmp,gif',
-      minWidth: 100,
-      minHeight: 100,
-      closeAfter: true,
+    this.form = this.formBuilder.group(this.defaultSettings);
+    this.loadForm();
+    this.formChanged();
+  }
+
+  private loadForm() {
+    chrome.storage.local.get(['settings'], result => {
+      if (result['settings']) {
+        this.ngZone.run(() => this.form.setValue(result['settings']));
+      } else {
+        chrome.storage.local.set({ settings: this.defaultSettings });
+      }
     });
-
-    this.load();
-    this.subscribeChanges();
   }
 
-  load() {
-    chrome.storage.local.get(['settings'], result =>
-      this.ngZone.run(() => {
-        if (result['settings']) {
-          this.form.setValue(result['settings']);
-        } else {
-          chrome.storage.local.set({ settings: this.form.value });
-        }
-      })
-    );
-  }
-
-  subscribeChanges() {
+  private formChanged() {
     this.form.valueChanges.subscribe(value => {
       chrome.storage.local.set({ settings: value });
     });
