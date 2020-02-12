@@ -6,8 +6,8 @@ chrome.runtime.onMessage.addListener((request: AppRequest, _sender, _sendRespons
     const image: AppImage = request.value;
     const xhr = new XMLHttpRequest();
     xhr.responseType = 'blob';
-    xhr.addEventListener('load', _ => {
-      if (xhr.status === 200) {
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === 4) {
         var disposition = xhr.getResponseHeader('Content-Disposition');
         if (disposition && disposition.indexOf('inline') !== -1) {
           var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
@@ -16,10 +16,15 @@ chrome.runtime.onMessage.addListener((request: AppRequest, _sender, _sendRespons
             image.name = matches[1].replace(/['"]/g, '');
           }
         }
-        image.data = URL.createObjectURL(xhr.response);
-        chrome.runtime.sendMessage({ method: 'blob-download', value: image });
+        if (xhr.status === 200) {
+          image.data = URL.createObjectURL(xhr.response);
+          chrome.runtime.sendMessage({ method: 'blob-download', value: image });
+        } else {
+          image.data = image.src;
+          chrome.runtime.sendMessage({ method: 'blob-download', value: image });
+        }
       }
-    });
+    };
     xhr.open('GET', image.src, true);
     xhr.send();
   }
