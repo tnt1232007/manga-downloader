@@ -4,13 +4,17 @@ import { AppRequest } from './app/model/app-request';
 
 let allTabs: AppTab[];
 let imageIndex: number = 0;
+let isDownloading: boolean = false;
 chrome.storage.local.get(['history'], result => {
   allTabs = result['history'] || [];
   chrome.runtime.onMessage.addListener(function(request: AppRequest, _sender, _sendResponse) {
     if (request.method === 'download' && request.value) {
       const tabs: AppTab[] = request.value;
       allTabs.push(...tabs);
-      processNextImage();
+      if (!isDownloading) {
+        isDownloading = true;
+        processNextImage();
+      }
     } else if (request.method === 'blob-download' && request.value) {
       const tab = getUnprocessedTab();
       const updatedImage: AppImage = request.value;
@@ -27,7 +31,10 @@ chrome.storage.local.get(['history'], result => {
 
 function processNextImage() {
   const tab = getUnprocessedTab();
-  if (!tab) return;
+  if (!tab) {
+    isDownloading = false;
+    return;
+  }
   tab.progress = { loaded: imageIndex, total: tab.images.length };
   chrome.runtime.sendMessage({ method: 'tabsChanged', value: allTabs });
   if (tab.progress.loaded >= tab.progress.total) {
@@ -53,7 +60,9 @@ function downloadImage() {
     item: chrome.downloads.DownloadItem,
     suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void
   ) => {
-    const folderRegEx = /[^A-z0-9-_ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệếỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ ]/g;
+    // TODO: Put in configuration
+    // TODO: Another configuration for exclusive regex
+    const folderRegEx = /[^A-Za-z0-9-_.'ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệếỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ ]/g;
     const folderName = tab.title.replace(folderRegEx, '');
     const indexStr = (imageIndex + 1).toString().padStart(3, '0');
     return suggest({ filename: `${folderName}/${indexStr}-${image.name || item.filename}` });
@@ -68,12 +77,7 @@ function downloadImage() {
         chrome.downloads.onChanged.removeListener(changedCb);
         chrome.downloads.onDeterminingFilename.removeListener(determiningFilenameCb);
         chrome.tabs.sendMessage(tab.id, { method: 'xhr-download', value: image });
-      } else if (
-        delta.id === id &&
-        delta.state &&
-        delta.state.previous === 'in_progress' &&
-        (delta.state.current === 'complete' || delta.state.current === 'interrupted')
-      ) {
+      } else if (delta.id === id && delta.filename && !delta.filename.previous && delta.filename.current) {
         chrome.downloads.onChanged.removeListener(changedCb);
         chrome.downloads.onDeterminingFilename.removeListener(determiningFilenameCb);
         imageIndex += 1;
@@ -87,8 +91,9 @@ function downloadImage() {
 function getUnprocessedTab(): AppTab {
   const tab = allTabs.find(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
   if (!tab) {
-    // If all tab are processed, save to history
-    chrome.storage.local.set({ history: allTabs });
+    // If all tab are processed, save to history that last 100 tabs
+    // TODO: Add to configuration
+    chrome.storage.local.set({ history: allTabs.filter((_, index) => index >= allTabs.length - 100) });
   }
   return tab;
 }
