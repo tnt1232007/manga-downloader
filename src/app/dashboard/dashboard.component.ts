@@ -13,7 +13,7 @@ import { AppRequest } from '../model/app-request';
   styles: [],
 })
 export class DashboardComponent implements OnInit {
-  @ViewChild('t') tabSet: NgbTabset;
+  @ViewChild('t', { static: true }) tabSet: NgbTabset;
   ongoingTabs: AppTab[] = [];
   newTabs: AppTab[] = [];
   completedTabs: AppTab[] = [];

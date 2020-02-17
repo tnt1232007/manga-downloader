@@ -60,8 +60,6 @@ function downloadImage() {
     item: chrome.downloads.DownloadItem,
     suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void
   ) => {
-    // TODO: Put in configuration
-    // TODO: Another configuration for exclusive regex
     const folderRegEx = /[^A-Za-z0-9-_.'ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệếỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ ]/g;
     const folderName = tab.title.replace(folderRegEx, '');
     const indexStr = (imageIndex + 1).toString().padStart(3, '0');
@@ -91,9 +89,10 @@ function downloadImage() {
 function getUnprocessedTab(): AppTab {
   const tab = allTabs.find(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
   if (!tab) {
-    // If all tab are processed, save to history that last 100 tabs
-    // TODO: Add to configuration
-    chrome.storage.local.set({ history: allTabs.filter((_, index) => index >= allTabs.length - 100) });
+    chrome.storage.local.get(['settings'], result => {
+      let maxHistory = result['settings']['maxHistory'] || 100;
+      chrome.storage.local.set({ history: allTabs.filter((_, index) => index >= allTabs.length - maxHistory) });
+    });
   }
   return tab;
 }

@@ -11,11 +11,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { SettingsComponent } from './settings/settings.component';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    DashboardComponent,
-    SettingsComponent
-  ],
+  declarations: [AppComponent, DashboardComponent, SettingsComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -24,9 +20,7 @@ import { SettingsComponent } from './settings/settings.component';
     ReactiveFormsModule,
     NgbModule.forRoot(),
   ],
-  providers: [
-    { provide: NgbDateAdapter, useClass: NgbDateNativeUTCAdapter },
-  ],
-  bootstrap: [AppComponent]
+  providers: [{ provide: NgbDateAdapter, useClass: NgbDateNativeUTCAdapter }],
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

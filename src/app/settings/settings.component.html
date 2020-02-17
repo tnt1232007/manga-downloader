@@ -13,15 +13,21 @@
   <div class="form-row mb-3">
     <div class="col">
       <label for="imageExtensions">Min width</label>
-      <input class="form-control" type="number" placeholder="In pixels" formControlName="minWidth" />
+      <input class="form-control" type="number" min="0" placeholder="In pixels" formControlName="minWidth" />
     </div>
     <div class="col">
       <label for="imageExtensions">Min height</label>
-      <input class="form-control" type="number" placeholder="In pixels" formControlName="minHeight" />
+      <input class="form-control" type="number" min="0" placeholder="In pixels" formControlName="minHeight" />
+    </div>
+  </div>
+  <div class="form-row mb-3">
+    <div class="col">
+      <label for="maxHistory">Max history</label>
+      <input class="form-control" type="number" min="0" formControlName="maxHistory" />
     </div>
   </div>
   <div class="form-group mb-3">
-    <div class="form-check">
+    <div class="col form-check">
       <input class="form-check-input" type="checkbox" id="closeAfter" formControlName="closeAfter" />
       <label class="form-check-label" for="closeAfter">
         Close after download

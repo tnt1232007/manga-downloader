@@ -12,8 +12,9 @@ export class SettingsComponent implements OnInit {
   form: FormGroup;
   defaultSettings: any = {
     imageExtensions: 'jpg,jpeg,png,bmp,gif',
-    minWidth: 100,
-    minHeight: 100,
+    minWidth: 300,
+    minHeight: 300,
+    maxHistory: 100,
     closeAfter: true,
   };
 
