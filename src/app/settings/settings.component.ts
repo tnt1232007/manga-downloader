@@ -15,10 +15,12 @@ export class SettingsComponent implements OnInit {
     minWidth: 300,
     minHeight: 300,
     maxHistory: 100,
+    enableExcludeUrls: false,
+    excludeUrls: '',
     closeAfter: true,
   };
 
-  constructor(private ngZone: NgZone, private formBuilder: FormBuilder) { }
+  constructor(private ngZone: NgZone, private formBuilder: FormBuilder) {}
 
   ngOnInit() {
     this.form = this.formBuilder.group(this.defaultSettings);
@@ -39,6 +41,13 @@ export class SettingsComponent implements OnInit {
   private formChanged() {
     this.form.valueChanges.subscribe(value => {
       chrome.storage.local.set({ settings: value });
+    });
+    this.form.controls['enableExcludeUrls'].valueChanges.subscribe(value => {
+      if (value) {
+        this.form.controls['excludeUrls'].enable();
+      } else {
+        this.form.controls['excludeUrls'].disable();
+      }
     });
   }
 }

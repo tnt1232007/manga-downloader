@@ -58,14 +58,11 @@ export class DashboardComponent implements OnInit {
     chrome.runtime.onMessage.addListener((request: AppRequest, _sender, _sendResponse) => {
       if (request.method === 'tabsChanged' && request.value) {
         const allTabs: AppTab[] = request.value;
+        const isTabCompleted = (tab: AppTab) => tab.progress && tab.progress.loaded === tab.progress.total;
         this.ngZone.run(() => {
           this.newTabs = this.newTabs.filter((tab: AppTab) => !allTabs.some((tab_: AppTab) => tab_.id === tab.id));
-          this.ongoingTabs = allTabs.filter(
-            (tab: AppTab) => !(tab.progress && tab.progress.loaded === tab.progress.total)
-          );
-          this.completedTabs = allTabs.filter(
-            (tab: AppTab) => tab.progress && tab.progress.loaded === tab.progress.total
-          );
+          this.ongoingTabs = allTabs.filter((tab: AppTab) => !isTabCompleted(tab));
+          this.completedTabs = allTabs.filter((tab: AppTab) => isTabCompleted(tab));
         });
       }
     });
@@ -79,22 +76,29 @@ export class DashboardComponent implements OnInit {
           this.ngZone.run(() => this.tabSet.select('settingsTab'));
           return;
         }
+        this.ngZone.run(() => {
+          this.newTabs = tabs
+            .filter(tab => !!tab.url)
+            .filter(tab => tab.url.startsWith('http') || tab.url.startsWith('https'))
+            .map(tab => new AppTab(tab));
+        });
 
-        this.ngZone.run(() => this.newTabs = tabs
-          .filter(tab => !!tab.url)
-          .filter(tab => tab.url.startsWith('http') || tab.url.startsWith('https'))
-          .map(tab => new AppTab(tab))
-        );
-        const imageExtensions = settings['imageExtensions'].split(',').map((ext: string) => '.' + ext);
         const sizeFilter = (image: AppImage) =>
           image.height > settings['minHeight'] && image.width > settings['minWidth'];
-        const extFilter = (image: AppImage) => imageExtensions.some(v => image.src.toLowerCase().indexOf(v) >= 0);
+        const imageExtensions = (<string>settings['imageExtensions']).split(',').map((ext: string) => '.' + ext);
+        const extFilter = (image: AppImage) =>
+          imageExtensions.some((ext: string) => image.src.toLowerCase().indexOf(ext) >= 0);
+        const excludeUrls = (<string>settings['excludeUrls']).split('\n')
+          .map((wildcard: string) => new RegExp(`^${wildcard.replace(/\*/g, '.*').replace(/\?/g, '.')}$`, 'i'));
+        const excludeFilter = (image: AppImage) => excludeUrls.every((regex: RegExp) => !regex.test(image.src));
         for (let i = 0; i < this.newTabs.length; i++) {
           const tab = this.newTabs[i];
           chrome.tabs.executeScript(tab.id, { file: 'images.js' }, (results: AppImage[][]) => {
             this.ngZone.run(() => {
               console.log(results[0]);
-              tab.images = results[0].filter(image => sizeFilter(image) && extFilter(image));
+              tab.images = results[0]
+                .filter(image => sizeFilter(image) && extFilter(image))
+                .filter(image => !settings['enableExcludeUrls'] || excludeFilter(image));
               tab.selected = tab.images.length > 0;
             });
           });
