@@ -42,12 +42,5 @@ export class SettingsComponent implements OnInit {
     this.form.valueChanges.subscribe(value => {
       chrome.storage.local.set({ settings: value });
     });
-    this.form.controls['enableExcludeUrls'].valueChanges.subscribe(value => {
-      if (value) {
-        this.form.controls['excludeUrls'].enable();
-      } else {
-        this.form.controls['excludeUrls'].disable();
-      }
-    });
   }
 }
