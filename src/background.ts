@@ -60,7 +60,8 @@ function downloadImage() {
     item: chrome.downloads.DownloadItem,
     suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void
   ) => {
-    const folderRegEx = /[^A-Za-z0-9-_.'ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệếỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ ]/g;
+    // tslint:disable-next-line: max-line-length
+    const folderRegEx = /[^A-Za-z0-9-_.,'ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệếỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ ]/g;
     const folderName = tab.title.replace(folderRegEx, '');
     const indexStr = (imageIndex + 1).toString().padStart(3, '0');
     return suggest({ filename: `${folderName}/${indexStr}-${image.name || item.filename}` });

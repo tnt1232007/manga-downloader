@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Manga Downloader",
-  "version": "2.3",
+  "version": "2.4",
   "description": "Download images from multiple tabs into separate folders in order",
   "icons": {
     "16": "assets/Icon-16.png",
@@ -24,8 +24,7 @@
   },
   "content_scripts": [{
       "matches":    ["*://*/*"],
-      "js":         ["content.js"],
-      "all_frames": true
+      "js":         ["content.js"]
   }],
   "permissions": [
     "tabs",
