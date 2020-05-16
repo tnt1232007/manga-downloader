@@ -23,6 +23,7 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     this.loadNew();
     this.subscribeBackgroundChanged();
+    chrome.runtime.sendMessage({ method: 'init' });
   }
 
   public tabChanged($event: NgbTabChangeEvent) {

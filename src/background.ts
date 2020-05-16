@@ -25,6 +25,8 @@ chrome.storage.local.get(['history'], result => {
     } else if (request.method === 'clear') {
       allTabs = allTabs.filter(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
       chrome.storage.local.remove('history');
+    } else if (request.method === 'init') {
+      chrome.runtime.sendMessage({ method: 'tabsChanged', value: allTabs });
     }
   });
 });
@@ -88,14 +90,14 @@ function downloadImage() {
 }
 
 function getUnprocessedTab(): AppTab {
-  const tab = allTabs.find(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
-  if (!tab) {
+  const unprocessedTab = allTabs.find(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
+  if (!unprocessedTab) {
     chrome.storage.local.get(['settings'], result => {
-      let maxHistory = result['settings']['maxHistory'] || 100;
+      const maxHistory = result['settings']['maxHistory'] || 100;
       chrome.storage.local.set({ history: allTabs.filter((_, index) => index >= allTabs.length - maxHistory) });
     });
   }
-  return tab;
+  return unprocessedTab;
 }
 
 function closeTab(tab: AppTab): void {

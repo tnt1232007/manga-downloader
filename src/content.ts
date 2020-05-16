@@ -8,10 +8,10 @@ chrome.runtime.onMessage.addListener((request: AppRequest, _sender, _sendRespons
     xhr.responseType = 'blob';
     xhr.addEventListener('load', _ => {
       if (xhr.status === 200) {
-        var disposition = xhr.getResponseHeader('Content-Disposition');
+        const disposition = xhr.getResponseHeader('Content-Disposition');
         if (disposition && disposition.indexOf('inline') !== -1) {
-          var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-          var matches = filenameRegex.exec(disposition);
+          const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+          const matches = filenameRegex.exec(disposition);
           if (matches != null && matches[1]) {
             image.name = matches[1].replace(/['"]/g, '');
           }
