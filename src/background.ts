@@ -94,7 +94,8 @@ function getUnprocessedTab(): AppTab {
   if (!unprocessedTab) {
     chrome.storage.local.get(['settings'], result => {
       const maxHistory = result['settings']['maxHistory'] || 100;
-      chrome.storage.local.set({ history: allTabs.filter((_, index) => index >= allTabs.length - maxHistory) });
+      allTabs = allTabs.filter((_, index) => index >= allTabs.length - maxHistory);
+      chrome.storage.local.set({ history: allTabs });
     });
   }
   return unprocessedTab;

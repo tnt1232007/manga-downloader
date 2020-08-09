@@ -1,6 +1,6 @@
 {
   "name": "manga-downloader",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "scripts": {
     "ng": "ng",
     "build": "ng build --output-path dist",

@@ -17,6 +17,7 @@ export class DashboardComponent implements OnInit {
   ongoingTabs: AppTab[] = [];
   newTabs: AppTab[] = [];
   completedTabs: AppTab[] = [];
+  private init: boolean;
 
   constructor(private ngZone: NgZone) {}
 
@@ -24,9 +25,11 @@ export class DashboardComponent implements OnInit {
     this.loadNew();
     this.subscribeBackgroundChanged();
     chrome.runtime.sendMessage({ method: 'init' });
+    this.init = true;
   }
 
   public tabChanged($event: NgbTabChangeEvent) {
+    this.init = false;
     switch ($event.nextId) {
       case 'newTab':
         this.loadNew();
@@ -64,6 +67,10 @@ export class DashboardComponent implements OnInit {
           this.newTabs = this.newTabs.filter((tab: AppTab) => !allTabs.some((tab_: AppTab) => tab_.id === tab.id));
           this.ongoingTabs = allTabs.filter((tab: AppTab) => !isTabCompleted(tab));
           this.completedTabs = allTabs.filter((tab: AppTab) => isTabCompleted(tab));
+
+          if (this.init && this.ongoingTabs.length > 0) {
+            this.tabSet.select('ongoingTabs');
+          }
         });
       }
     });
