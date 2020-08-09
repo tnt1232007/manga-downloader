@@ -6,12 +6,15 @@ enum ImageType {
   LINK,
   INPUT_IMG,
   BACKGROUND,
+  ROOT,
 }
 
 function extractAll(): AppImage[] {
   try {
+    const rootImage = extractLinkImg(document.URL);
+    if (!!rootImage) rootImage.type = ImageType.ROOT;
     const imgLst: AppImage[] = [
-      extractLinkImg(document.URL),
+      rootImage,
       ...extractImgs(document.getElementsByTagName('img'), source => source.src),
       ...extractImgs(document.images, source => source.currentSrc),
       ...extractImgs(document.getElementsByTagName('source'), source => source.srcset),

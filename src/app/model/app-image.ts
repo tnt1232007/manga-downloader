@@ -4,6 +4,7 @@ export enum ImageType {
   LINK,
   INPUT_IMG,
   BACKGROUND,
+  ROOT,
 }
 
 export class AppImage {

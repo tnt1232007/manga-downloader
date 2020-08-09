@@ -105,7 +105,7 @@ export class DashboardComponent implements OnInit {
             this.ngZone.run(() => {
               console.log(results[0]);
               tab.images = results[0]
-                .filter(image => image.type !== ImageType.IMG || (sizeFilter(image) && extFilter(image)))
+                .filter(image => image.type === ImageType.ROOT || (sizeFilter(image) && extFilter(image)))
                 .filter(image => !settings['enableExcludeUrls'] || excludeFilter(image));
               if (settings['enableAlterUrls']) {
                 const alterUrls = (<string>settings['alterUrls']).split('\n');
