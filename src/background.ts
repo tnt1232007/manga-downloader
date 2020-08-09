@@ -66,7 +66,8 @@ function downloadImage() {
     const folderRegEx = /[^A-Za-z0-9-_.,'ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệếỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ ]/g;
     const folderName = tab.title.replace(folderRegEx, '');
     const indexStr = (imageIndex + 1).toString().padStart(3, '0');
-    return suggest({ filename: `${folderName}/${indexStr}-${image.name || item.filename}` });
+    const fileName = `${indexStr}-${image.name || item.filename}`;
+    return suggest({ filename: tab.images.length > 1 ? `${folderName}/${fileName}`: fileName });
   };
   if (!chrome.downloads.onDeterminingFilename.hasListeners()) {
     chrome.downloads.onDeterminingFilename.addListener(determiningFilenameCb);

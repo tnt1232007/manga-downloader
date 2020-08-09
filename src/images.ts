@@ -11,13 +11,14 @@ enum ImageType {
 function extractAll(): AppImage[] {
   try {
     const imgLst: AppImage[] = [
+      extractLinkImg(document.URL),
       ...extractImgs(document.getElementsByTagName('img'), source => source.src),
       ...extractImgs(document.images, source => source.currentSrc),
       ...extractImgs(document.getElementsByTagName('source'), source => source.srcset),
       ...extractInputImgs(document.getElementsByTagName('input')),
       ...extractLinkImgs(document.getElementsByTagName('a')),
     ];
-    return imgLst.filter((value, index, array) => array.findIndex(item => item.src === value.src) === index);
+    return imgLst.filter(value => !!value).filter((value, index, array) => array.findIndex(item => item.src === value.src) === index);
   } catch (error) {
     return [error];
   }
@@ -58,15 +59,17 @@ function extractInputImgs<T extends HTMLInputElement>(sources: HTMLCollectionOf<
 function extractLinkImgs<T extends HTMLAnchorElement>(sources: HTMLCollectionOf<T>): AppImage[] {
   const imgLst: AppImage[] = [];
   for (var i = 0; i < sources.length; i++) {
-    var link = sources[i];
-    var href = link.href;
-    const ExtFilter = ['.jpg','.jpeg','.png','.bmp','.gif'];
-    if (ExtFilter.some(v => href.toLowerCase().endsWith(v))) {
-      const image = <AppImage>{ type: ImageType.LINK, src: href, width: 0, height: 0 };
-      imgLst.push(image);
-    }
+    const image = extractLinkImg(sources[i].href);
+    if (!!image) imgLst.push(image);
   }
   return imgLst;
+}
+
+function extractLinkImg(href: string): AppImage {
+  const ExtFilter = ['.jpg','.jpeg','.png','.bmp','.gif'];
+    return ExtFilter.some(v => href.toLowerCase().endsWith(v))
+     ? <AppImage>{ type: ImageType.LINK, src: href, width: 0, height: 0 }
+     : null;
 }
 
 extractAll();

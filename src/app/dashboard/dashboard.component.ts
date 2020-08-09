@@ -4,7 +4,7 @@ import { Component, OnInit, NgZone, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { NgbTabset, NgbTabChangeEvent } from '@ng-bootstrap/ng-bootstrap';
 import { AppTab } from '../model/app-tab';
-import { AppImage } from '../model/app-image';
+import { AppImage, ImageType } from '../model/app-image';
 import { AppRequest } from '../model/app-request';
 
 @Component({
@@ -105,9 +105,20 @@ export class DashboardComponent implements OnInit {
             this.ngZone.run(() => {
               console.log(results[0]);
               tab.images = results[0]
-                .filter(image => sizeFilter(image) && extFilter(image))
+                .filter(image => image.type !== ImageType.IMG || (sizeFilter(image) && extFilter(image)))
                 .filter(image => !settings['enableExcludeUrls'] || excludeFilter(image));
+              if (settings['enableAlterUrls']) {
+                const alterUrls = (<string>settings['alterUrls']).split('\n');
+                const newAlterUrls = (<string>settings['newAlterUrls']).split('\n');
+                for (let i = 0; i < alterUrls.length; i++) {
+                  const url = alterUrls[i];
+                  const newUrl = newAlterUrls[i];
+                  const regex = new RegExp(url, 'i');
+                  tab.images.forEach(image => image.src = image.src.replace(regex, newUrl));
+                }
+              }
               tab.selected = tab.images.length > 0;
+              console.log(tab);
             });
           });
         }
