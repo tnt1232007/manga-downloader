@@ -18,6 +18,8 @@ chrome.storage.local.get(['history'], result => {
         processNextImage();
       }
     } else if (request.method === 'abortOngoing') {
+      imageIndex = 0;
+      isDownloading = false;
       allTabs = allTabs.filter(tab => tab.progress && tab.progress.loaded === tab.progress.total);
     } else if (request.method === 'clearHistory') {
       allTabs = allTabs.filter(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
@@ -40,6 +42,7 @@ function processNextImage() {
   }
 
   if (!tab) {
+    imageIndex = 0;
     isDownloading = false;
     return;
   }

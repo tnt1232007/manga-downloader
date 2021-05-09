@@ -2,6 +2,7 @@
 
 import { Component, OnInit, NgZone } from '@angular/core';
 import { FormGroup, FormBuilder } from '@angular/forms';
+import { AppTab } from '../model/app-tab';
 
 @Component({
   selector: 'app-settings',
@@ -23,7 +24,7 @@ export class SettingsComponent implements OnInit {
     closeAfter: true,
   };
 
-  constructor(private ngZone: NgZone, private formBuilder: FormBuilder) {}
+  constructor(private ngZone: NgZone, private formBuilder: FormBuilder) { }
 
   ngOnInit() {
     this.form = this.formBuilder.group(this.defaultSettings);
@@ -44,6 +45,16 @@ export class SettingsComponent implements OnInit {
   private formChanged() {
     this.form.valueChanges.subscribe(value => {
       chrome.storage.local.set({ settings: value });
+    });
+  }
+
+  public addAllCurrentImages() {
+    chrome.storage.local.get(['new'], result => {
+      if (result['new']) {
+        const excludeUrls = this.form.getRawValue().excludeUrls;
+        const allCurrentUrls = (<AppTab[]>result['new']).reduce((prevTabs, currTab) => `${prevTabs}${currTab.images.reduce((prevImages, currImage) => `${prevImages}${currImage.src}\n`, '')}\n`, '');
+        this.ngZone.run(() => this.form.patchValue({ excludeUrls: `${excludeUrls}\n-- ${new Date().toLocaleString()}\n${allCurrentUrls}`.trim() }));
+      }
     });
   }
 }

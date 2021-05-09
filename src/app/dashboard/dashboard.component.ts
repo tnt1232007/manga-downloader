@@ -19,7 +19,7 @@ export class DashboardComponent implements OnInit {
   completedTabs: AppTab[] = [];
   private init: boolean;
 
-  constructor(private ngZone: NgZone) {}
+  constructor(private ngZone: NgZone) { }
 
   ngOnInit() {
     this.loadNew();
@@ -85,19 +85,18 @@ export class DashboardComponent implements OnInit {
         const extFilter = (image: AppImage) =>
           imageExtensions.some((ext: string) => image.src.toLowerCase().indexOf(ext) >= 0);
         const excludeUrls = (<string>settings['excludeUrls']).split('\n')
+          .filter(regex => !regex.startsWith('//') || !regex.startsWith('--'))
           .map((wildcard: string) => new RegExp(`^${wildcard.replace(/\*/g, '.*').replace(/\?/g, '.')}$`, 'i'));
         const excludeFilter = (image: AppImage) => excludeUrls.every((regex: RegExp) => !regex.test(image.src));
         for (let i = 0; i < this.newTabs.length; i++) {
           const tab = this.newTabs[i];
           chrome.tabs.executeScript(tab.id, { file: 'images.js' }, (results: AppImage[][]) => {
             this.ngZone.run(() => {
-              console.log(results[0]);
-              tab.images = results[0]
-                .filter(image => image.type === ImageType.ROOT || (sizeFilter(image) && extFilter(image)))
-                .filter(image => !settings['enableExcludeUrls'] || excludeFilter(image));
+              tab.images = results[0];
+              tab.images = tab.images.filter(image => image.type === ImageType.ROOT || (sizeFilter(image) && extFilter(image)));
               if (settings['enableAlterUrls']) {
-                const alterUrls = (<string>settings['alterUrls']).split('\n');
-                const newAlterUrls = (<string>settings['newAlterUrls']).split('\n');
+                const alterUrls = (<string>settings['alterUrls']).split('\n').filter(regex => !regex.startsWith('//') || !regex.startsWith('--'));
+                const newAlterUrls = (<string>settings['newAlterUrls']).split('\n').filter(regex => !regex.startsWith('//') || !regex.startsWith('--'));
                 for (let i = 0; i < alterUrls.length; i++) {
                   const url = alterUrls[i];
                   const newUrl = newAlterUrls[i];
@@ -105,8 +104,9 @@ export class DashboardComponent implements OnInit {
                   tab.images.forEach(image => image.src = image.src.replace(regex, newUrl));
                 }
               }
+              tab.images = tab.images.filter(image => !settings['enableExcludeUrls'] || excludeFilter(image));
               tab.selected = tab.images.length > 0;
-              console.log(tab);
+              chrome.storage.local.set({ new: this.newTabs });
             });
           });
         }
