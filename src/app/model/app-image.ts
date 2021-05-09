@@ -1,4 +1,4 @@
-export enum ImageType {
+export const enum ImageType {
   IMG,
   TEXT,
   LINK,

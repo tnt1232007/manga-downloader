@@ -1,13 +1,4 @@
-import { AppImage } from './app/model/app-image';
-
-enum ImageType {
-  IMG,
-  TEXT,
-  LINK,
-  INPUT_IMG,
-  BACKGROUND,
-  ROOT,
-}
+import { ImageType, AppImage } from './app/model/app-image';
 
 function extractAll(): AppImage[] {
   try {
