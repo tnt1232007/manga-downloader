@@ -1,17 +1,19 @@
 <ngb-tabset #t="ngbTabset" (tabChange)="tabChanged($event)">
   <ngb-tab id="newTab" title="New">
     <ng-template ngbTabContent>
-      <ng-container *ngTemplateOutlet="downloadTabsTemplate; context: {$implicit: newTabs}"></ng-container>
+      <ng-container *ngTemplateOutlet="newTabsTemplate; context: {$implicit: newTabs}"></ng-container>
     </ng-template>
   </ngb-tab>
   <ngb-tab id="ongoingTab" title="Ongoing">
     <ng-template ngbTabContent>
       <ng-container *ngTemplateOutlet="displayTabsTemplate; context: {$implicit: ongoingTabs}"></ng-container>
+      <button *ngIf="ongoingTabs.length" type="button" class="btn btn-lg btn-primary btn-block" (click)="abortOngoing()">Clear</button>
     </ng-template>
   </ngb-tab>
   <ngb-tab id="historyTab" title="History">
     <ng-template ngbTabContent>
-      <ng-container *ngTemplateOutlet="completedTabsTemplate; context: {$implicit: completedTabs}"></ng-container>
+      <ng-container *ngTemplateOutlet="displayTabsTemplate; context: {$implicit: completedTabs}"></ng-container>
+      <button *ngIf="completedTabs.length" type="button" class="btn btn-lg btn-primary btn-block" (click)="clearHistory()">Clear</button>
     </ng-template>
   </ngb-tab>
   <ngb-tab id="settingsTab" title="Settings">
@@ -20,6 +22,24 @@
     </ng-template>
   </ngb-tab>
 </ngb-tabset>
+
+<ng-template #newTabsTemplate let-tabs>
+  <form (ngSubmit)="downloadNew(f)" #f="ngForm">
+    <div class="btn-group-vertical btn-group-toggle w-100 mb-3">
+      <label *ngFor="let tab of tabs; let i = index;" class="list-group-item text-left w-100 btn-outline-primary" ngbButtonLabel>
+        <input type="checkbox" ngbButton name="tabs-{{tab.id}}" [disabled]="!tab.images || tab.images.length === 0" [(ngModel)]="tab.selected">
+        <h6 class="text-truncate">{{i+1}}. {{tab.title}}</h6>
+        <small class="d-block text-truncate"><a [href]="tab.url" target="_blank">{{tab.url}}</a></small>
+        <small *ngIf="tab.images">Found {{tab.images.length}} images</small>
+        <small *ngIf="!tab.images">Computing...</small>
+      </label>
+    </div>
+    <div class="form-row mb-3">
+      <div class="col"><button type="button" class="btn btn-lg btn-secondary btn-block" (click)="refreshNew()">Refresh</button></div>
+      <div class="col"><button *ngIf="tabs.length" type="submit" class="btn btn-lg btn-primary btn-block">Download</button></div>
+    </div>
+  </form>
+</ng-template>
 
 <ng-template #displayTabsTemplate let-tabs>
   <div class="btn-group-vertical w-100 mb-3">
@@ -30,24 +50,4 @@
       <ngb-progressbar *ngIf="!tab.progress" type="warning" [value]="100" [striped]="true" [animated]="true">Queue</ngb-progressbar>
     </label>
   </div>
-</ng-template>
-
-<ng-template #downloadTabsTemplate let-tabs>
-  <form (ngSubmit)="submit(f)" #f="ngForm">
-    <div class="btn-group-vertical btn-group-toggle w-100 mb-3">
-      <label *ngFor="let tab of tabs; let i = index;" class="list-group-item text-left w-100 btn-outline-primary" ngbButtonLabel>
-        <input type="checkbox" ngbButton name="tabs-{{tab.id}}" [disabled]="!tab.images || tab.images.length === 0" [(ngModel)]="tab.selected">
-        <h6 class="text-truncate">{{i+1}}. {{tab.title}}</h6>
-        <small class="d-block text-truncate"><a [href]="tab.url" target="_blank">{{tab.url}}</a></small>
-        <small *ngIf="tab.images">Found {{tab.images.length}} images</small>
-        <small *ngIf="!tab.images">Computing...</small>
-      </label>
-    </div>
-    <button *ngIf="tabs.length" type="submit" class="btn btn-lg btn-primary btn-block">Download</button>
-  </form>
-</ng-template>
-
-<ng-template #completedTabsTemplate let-tabs>
-  <ng-container *ngTemplateOutlet="displayTabsTemplate; context: {$implicit: tabs}"></ng-container>
-  <button *ngIf="tabs.length" type="button" class="btn btn-lg btn-primary btn-block" (click)="clear()">Clear</button>
 </ng-template>

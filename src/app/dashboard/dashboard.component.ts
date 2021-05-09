@@ -46,18 +46,6 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  public submit(_form: NgForm) {
-    const tabs = this.newTabs.filter(tab => tab.selected);
-    chrome.runtime.sendMessage({ method: 'download', value: tabs });
-    this.tabSet.select('ongoingTab');
-  }
-
-  public clear() {
-    chrome.runtime.sendMessage({ method: 'clear' });
-    this.ongoingTabs = [];
-    this.completedTabs = [];
-  }
-
   private subscribeBackgroundChanged() {
     chrome.runtime.onMessage.addListener((request: AppRequest, _sender, _sendResponse) => {
       if (request.method === 'tabsChanged' && request.value) {
@@ -130,5 +118,26 @@ export class DashboardComponent implements OnInit {
     chrome.storage.local.get(['history'], result =>
       this.ngZone.run(() => (this.completedTabs = result['history'] || []))
     );
+  }
+
+  public refreshNew() {
+    this.loadNew();
+  }
+
+  public downloadNew(_form: NgForm) {
+    const tabs = this.newTabs.filter(tab => tab.selected);
+    chrome.runtime.sendMessage({ method: 'downloadNew', value: tabs });
+    this.tabSet.select('ongoingTab');
+  }
+
+  public abortOngoing() {
+    chrome.runtime.sendMessage({ method: 'abortOngoing' });
+    this.ongoingTabs = [];
+  }
+
+  public clearHistory() {
+    chrome.runtime.sendMessage({ method: 'clearHistory' });
+    this.ongoingTabs = [];
+    this.completedTabs = [];
   }
 }
