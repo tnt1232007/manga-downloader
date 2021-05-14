@@ -1,18 +1,8 @@
 # <img width="24px" src="./src/assets/Icon-128.png" alt="Manga Downloader"></img> Manga Downloader
+[![Installation](https://img.shields.io/chrome-web-store/rating/dcaaabmopjlkogkeahlbehpnppgleahf?style=flat-square&label=Chrome%20Web%20Store&cacheSeconds=3600)](https://chrome.google.com/webstore/detail/manga-downloader/dcaaabmopjlkogkeahlbehpnppgleahf)
+[![GitHub - Bugs and Feature Requests Only](https://img.shields.io/github/issues/tnt1232007/mangadownloader?style=flat-square&label=GitHub&cacheSeconds=60)](https://github.com/tnt1232007/mangadownloader/issues)
 
 A powerful manga downloader as Chrome extensions. Specialized in downloading images naming in order, from multiple tabs into separate folders.
-
-<img src="./screenshots/210513_212537.png" alt="Screenshot 1"></img>
-<img src="./screenshots/210513_212600.png" alt="Screenshot 2"></img>
-
-## Getting Started
-
-- [Installation](https://chrome.google.com/webstore/detail/manga-downloader/dcaaabmopjlkogkeahlbehpnppgleahf)
-- [Donate](https://www.buymeacoffee.com/tnt1232007)
-
-## Support
-- [Email](mailto:tnt1232007@gmail.com)
-- [Issues](https://github.com/tnt1232007/mangadownloader/issues)
 
 ## Features
 
@@ -28,3 +18,11 @@ A powerful manga downloader as Chrome extensions. Specialized in downloading ima
 - Options to limit history records
 - Options to close tab after download
 - And a beautiful UI
+
+## Preview
+
+<img src="./screenshots/210513_212537.png" alt="Screenshot 1"></img>
+<img src="./screenshots/210513_212600.png" alt="Screenshot 2"></img>
+
+---
+<a href="https://www.buymeacoffee.com/tnt1232007" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/guidelines/download-assets-sm-1.svg" alt="Buy Me A Coffee" ></a>
