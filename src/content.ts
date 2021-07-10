@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener((request: AppRequest, _sender, _sendRespons
     const image: AppImage = request.value;
     const xhr = new XMLHttpRequest();
     xhr.responseType = 'blob';
-    xhr.addEventListener('load', _ => {
+    xhr.onload = _ => {
       if (xhr.status === 200) {
         const disposition = xhr.getResponseHeader('Content-Disposition');
         if (disposition && disposition.indexOf('inline') !== -1) {
@@ -19,7 +19,13 @@ chrome.runtime.onMessage.addListener((request: AppRequest, _sender, _sendRespons
         image.data = URL.createObjectURL(xhr.response);
         chrome.runtime.sendMessage({ method: 'dl-blob-via-background', value: image });
       }
-    });
+    };
+    xhr.onloadend = _ => {
+      if (xhr.status == 404) {
+        image.data = null;
+        chrome.runtime.sendMessage({ method: 'dl-blob-via-background', value: image });
+      }
+    };
     xhr.open('GET', image.src, true);
     xhr.send();
   }

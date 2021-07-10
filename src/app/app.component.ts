@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { displayName, version, author } from '../../package.json';
 
 @Component({
   selector: 'app-root',
@@ -6,5 +7,7 @@ import { Component } from '@angular/core';
   styles: []
 })
 export class AppComponent {
-  title = 'MangaDownloader';
+  public displayName = displayName;
+  public version = version;
+  public author = author;
 }

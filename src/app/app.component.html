@@ -1,9 +1,13 @@
-<header>
-  <div class="d-flex flex-column align-items-center p-3 border-bottom shadow-sm">
-    <h5>Manga Downloader</h5>
-  </div>
-</header>
+<div class="d-flex flex-column h-100">
+  <header class="p-3 border-bottom shadow-sm">
+    <h5 class="text-center">{{displayName}}</h5>
+  </header>
 
-<main class="container p-4">
-  <router-outlet></router-outlet>
-</main>
+  <main class="container p-4">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="card-footer mt-auto text-center">
+    <small><a [href]="author.url" target="_blank">v{{version}}</a></small> - <small><a href="mailto:{{author.email}}?subject={{displayName}}" target="_blank">{{author.name}}</a></small>
+  </footer>
+</div>

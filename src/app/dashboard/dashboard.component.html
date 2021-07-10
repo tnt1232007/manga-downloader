@@ -35,8 +35,12 @@
       </label>
     </div>
     <div class="form-row mb-3">
-      <div class="col"><button type="button" class="btn btn-lg btn-secondary btn-block" (click)="refreshNew()">Refresh</button></div>
-      <div class="col"><button *ngIf="tabs.length" type="submit" class="btn btn-lg btn-primary btn-block">Download</button></div>
+      <div class="col">
+        <button type="button" class="btn btn-lg btn-secondary btn-block" (click)="refreshNew()">Refresh</button>
+      </div>
+      <div class="col" *ngIf="tabs.length">
+        <button type="submit" class="btn btn-lg btn-primary btn-block">Download</button>
+      </div>
     </div>
   </form>
 </ng-template>

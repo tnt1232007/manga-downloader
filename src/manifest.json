@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Manga Downloader",
-  "version": "2.6",
+  "version": "2.7",
   "description": "A powerful manga downloader as Chrome extensions. Specialized in downloading images naming in order, from multiple tabs into separate folders.",
   "icons": {
     "16": "assets/Icon-16.png",

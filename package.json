@@ -1,17 +1,22 @@
 {
   "name": "manga-downloader",
-  "version": "2.6.0",
+  "displayName": "Manga Downloader",
+  "version": "2.7.0",
+  "author": {
+    "name": "TNT",
+    "email": "tnt1232007+support@gmail.com",
+    "url": "https://chrome.google.com/webstore/detail/manga-downloader/dcaaabmopjlkogkeahlbehpnppgleahf"
+  },
   "scripts": {
-    "ng": "ng",
-    "build": "ng build --output-path dist",
-    "tsc": "tsc --target esnext --outDir dist --sourceMap @tsfiles.txt",
-    "watch": "npm run build -- --watch",
-    "watchtsc": "npm run tsc -- --watch",
-    "zip": "cd dist && bestzip ../dist.zip *",
-    "buildprod": "ng build --prod --output-path %npm_package_name%-%npm_package_version% & tsc --target esnext --outdir %npm_package_name%-%npm_package_version% --sourceMap @tsfiles.txt",
-    "zipprod": "cd %npm_package_name%-%npm_package_version% && bestzip ../%npm_package_name%-%npm_package_version%.zip *",
-    "publish": "npm run buildprod & npm run zipprod",
-    "postbuild": "npm run tsc"
+    "build-ng": "ng build --output-path dist",
+    "build-tsc": "tsc --target esnext --outDir dist --sourceMap @tsfiles.txt",
+    "build": "concurrently \"npm:build-*\"",
+    "watch-ng": "npm run build-ng -- --watch",
+    "watch-tsc": "npm run build-tsc -- --watch",
+    "watch": "concurrently \"npm:watch-*\"",
+    "publish-build": "ng build --prod --output-path %npm_package_name%-%npm_package_version% & tsc --target esnext --outdir %npm_package_name%-%npm_package_version% --sourceMap @tsfiles.txt",
+    "publish-zip": "cd %npm_package_name%-%npm_package_version% && bestzip ../%npm_package_name%-%npm_package_version%.zip *",
+    "publish": "npm run publish-build & npm run publish-zip"
   },
   "private": true,
   "dependencies": {

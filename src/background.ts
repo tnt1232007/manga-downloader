@@ -30,11 +30,15 @@ chrome.storage.local.get(['history'], result => {
       if (updatedImage.data) {
         tab.images[imageIndex] = updatedImage;
         downloadImage();
+      } else {
+        imageIndex += 1;
+        processNextImage();
       }
     }
   });
 });
 
+let retry = 0;
 function processNextImage() {
   const tab = getUnprocessedTab();
   if (!isDownloading) {
@@ -53,13 +57,23 @@ function processNextImage() {
     imageIndex = 0;
     closeTab(tab);
     processNextImage();
+    retry = 0;
   } else {
+    // Check if tab still opened
     chrome.tabs.get(tab.id, found => {
       if (found) {
         downloadImage();
       } else {
-        allTabs = allTabs.filter(t => t.id !== tab.id);
-        processNextImage();
+        // Tab is really closed unexpectedly (or user keep dragging tabs), remove it and continue
+        if (retry >= 10) {
+          allTabs = allTabs.filter(t => t.id !== tab.id);
+          retry = 0;
+        }
+        // Workaround for Error "Tabs cannot be edited right now (user may be dragging a tab)"
+        setTimeout(() => {
+          processNextImage();
+          retry += 1;
+        }, 1000);
       }
     });
   }

@@ -79,8 +79,8 @@ export class DashboardComponent implements OnInit {
             .map(tab => new AppTab(tab));
         });
 
-        const sizeFilter = (image: AppImage) =>
-          image.height > settings['minHeight'] && image.width > settings['minWidth'];
+        const sizeFilter = (image: AppImage) => (!image.height && !image.width) ||
+          (image.height > settings['minHeight'] && image.width > settings['minWidth']);
         const imageExtensions = (<string>settings['imageExtensions']).split(',').map((ext: string) => '.' + ext);
         const extFilter = (image: AppImage) =>
           imageExtensions.some((ext: string) => image.src.toLowerCase().indexOf(ext) >= 0);
