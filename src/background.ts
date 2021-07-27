@@ -5,6 +5,7 @@ import { AppRequest } from './app/model/app-request';
 let allTabs: AppTab[];
 let imageIndex: number = 0;
 let isDownloading: boolean = false;
+let failedHosts = {};
 chrome.storage.local.get(['history'], result => {
   allTabs = result['history'] || [];
   chrome.runtime.onMessage.addListener(function (request: AppRequest, _sender, _sendResponse) {
@@ -96,22 +97,29 @@ function downloadImage() {
   if (!chrome.downloads.onDeterminingFilename.hasListeners()) {
     chrome.downloads.onDeterminingFilename.addListener(determiningFilenameCb);
   }
-  chrome.downloads.download({ url: image.data || image.src, filename: image.name }, id => {
-    const changedCb = (delta: chrome.downloads.DownloadDelta) => {
-      if (delta.error) {
-        // If any error, try to download xhr in content script
-        chrome.downloads.onChanged.removeListener(changedCb);
-        chrome.downloads.onDeterminingFilename.removeListener(determiningFilenameCb);
-        chrome.tabs.sendMessage(tab.id, { method: 'dl-xhr-via-content', value: image });
-      } else if (delta.id === id && delta.filename && !delta.filename.previous && delta.filename.current) {
-        chrome.downloads.onChanged.removeListener(changedCb);
-        chrome.downloads.onDeterminingFilename.removeListener(determiningFilenameCb);
-        imageIndex += 1;
-        processNextImage();
-      }
-    };
-    chrome.downloads.onChanged.addListener(changedCb);
-  });
+  const sourceURL = new URL(image.data || image.src);
+  if (failedHosts[sourceURL.host] > 3) {
+    chrome.downloads.onDeterminingFilename.removeListener(determiningFilenameCb);
+    chrome.tabs.sendMessage(tab.id, { method: 'dl-xhr-via-content', value: image });
+  } else {
+    chrome.downloads.download({ url: sourceURL.href, filename: image.name }, id => {
+      const changedCb = (delta: chrome.downloads.DownloadDelta) => {
+        if (delta.error) {
+          // If any error, try to download xhr in content script
+          chrome.downloads.onChanged.removeListener(changedCb);
+          chrome.downloads.onDeterminingFilename.removeListener(determiningFilenameCb);
+          chrome.tabs.sendMessage(tab.id, { method: 'dl-xhr-via-content', value: image });
+          failedHosts[sourceURL.host] = failedHosts[sourceURL.host] ? failedHosts[sourceURL.host] + 1 : 1;
+        } else if (delta.id === id && delta.filename && !delta.filename.previous && delta.filename.current) {
+          chrome.downloads.onChanged.removeListener(changedCb);
+          chrome.downloads.onDeterminingFilename.removeListener(determiningFilenameCb);
+          imageIndex += 1;
+          processNextImage();
+        }
+      };
+      chrome.downloads.onChanged.addListener(changedCb);
+    });
+  }
 }
 
 function getUnprocessedTab(): AppTab {
