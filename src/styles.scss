@@ -28,3 +28,13 @@ html, body {
     @extend .text-reset;
   }
 }
+
+.accordion {
+  .collapse > .card-body {
+    padding: 0;
+  }
+}
+
+.card-columns {
+  column-count: 2;
+}

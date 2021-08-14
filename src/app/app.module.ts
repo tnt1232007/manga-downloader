@@ -18,7 +18,7 @@ import { SettingsComponent } from './settings/settings.component';
     AppRoutingModule,
     FormsModule,
     ReactiveFormsModule,
-    NgbModule.forRoot(),
+    NgbModule,
   ],
   providers: [{ provide: NgbDateAdapter, useClass: NgbDateNativeUTCAdapter }],
   bootstrap: [AppComponent],

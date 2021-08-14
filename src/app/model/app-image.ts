@@ -7,6 +7,13 @@ export const enum ImageType {
   ROOT,
 }
 
+export const enum ImageStatus {
+  NEW,
+  QUEUED,
+  DOWNLOADED,
+  FAILED,
+}
+
 export class AppImage {
   type: ImageType;
   src: string;
@@ -14,4 +21,5 @@ export class AppImage {
   name: string;
   width: number;
   height: number;
+  status: ImageStatus = ImageStatus.NEW;
 }
