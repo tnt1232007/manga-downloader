@@ -1,5 +1,5 @@
 import { AppRequest } from './app/model/app-request';
-import { AppImage, ImageStatus } from './app/model/app-image';
+import { AppImage } from './app/model/app-image';
 
 chrome.runtime.onMessage.addListener((request: AppRequest, _sender, _sendResponse) => {
   if (request.method === 'dl-xhr-via-content' && request.value) {
@@ -25,7 +25,7 @@ function downloadImage(image: AppImage) {
     }
   };
   xhr.onloadend = (_) => {
-    if (xhr.status == 404) {
+    if (xhr.status == 404 || xhr.status == 0) {
       chrome.runtime.sendMessage({ method: 'dl-failed' });
     }
   };
