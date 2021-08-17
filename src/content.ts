@@ -8,20 +8,19 @@ chrome.runtime.onMessage.addListener((request: AppRequest, _sender, _sendRespons
   }
 });
 
-let retry = 0;
 function downloadImage(image: AppImage) {
   const xhr = new XMLHttpRequest();
   xhr.responseType = 'blob';
-  xhr.timeout = 7000;
+  xhr.timeout = 30000;
   xhr.onload = (_) => {
     if (xhr.status === 200) {
-      retry = 0;
       image.name = getImageName(xhr);
       image.data = URL.createObjectURL(xhr.response);
       chrome.runtime.sendMessage({
         method: 'dl-blob-via-background',
         value: image,
       });
+      console.log(image.src);
     }
   };
   xhr.onloadend = (_) => {
@@ -30,13 +29,8 @@ function downloadImage(image: AppImage) {
     }
   };
   xhr.ontimeout = (_) => {
-    if (retry < 3) {
-      downloadImage(image);
-      retry += 1;
-    } else {
-      chrome.runtime.sendMessage({ method: 'dl-failed' });
-      retry = 0;
-    }
+    chrome.runtime.sendMessage({ method: 'dl-failed' });
+    console.error(image.src);
   };
   xhr.open('GET', image.src, true);
   xhr.send();

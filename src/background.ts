@@ -138,6 +138,7 @@ function getUnprocessedTab(): AppTab {
 function closeTab(tab: AppTab): void {
   chrome.storage.local.get(['settings'], result => {
     if (result['settings']['closeAfter']) {
+      if (tab.images.some((image) => image.status == ImageStatus.FAILED)) return;
       chrome.tabs.remove(tab.id);
     }
   });
