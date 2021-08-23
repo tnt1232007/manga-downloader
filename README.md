@@ -1,5 +1,6 @@
 # <img width="24px" src="./src/assets/Icon-128.png" alt="Manga Downloader"></img> Manga Downloader
-[![Installation](https://img.shields.io/chrome-web-store/rating/dcaaabmopjlkogkeahlbehpnppgleahf?style=flat-square&label=Chrome%20Web%20Store&cacheSeconds=3600)](https://chrome.google.com/webstore/detail/manga-downloader/dcaaabmopjlkogkeahlbehpnppgleahf)
+[![Installation](https://img.shields.io/chrome-web-store/v/dcaaabmopjlkogkeahlbehpnppgleahf?style=flat-square&label=Chrome%20Web%20Store&cacheSeconds=3600)](https://chrome.google.com/webstore/detail/manga-downloader/dcaaabmopjlkogkeahlbehpnppgleahf)
+[![Installation](https://img.shields.io/chrome-web-store/rating/dcaaabmopjlkogkeahlbehpnppgleahf?style=flat-square&label=Rating&cacheSeconds=3600)](https://chrome.google.com/webstore/detail/manga-downloader/dcaaabmopjlkogkeahlbehpnppgleahf)
 [![GitHub - Bugs and Feature Requests Only](https://img.shields.io/github/issues/tnt1232007/mangadownloader?style=flat-square&label=GitHub&cacheSeconds=60)](https://github.com/tnt1232007/mangadownloader/issues)
 
 A powerful manga downloader as Chrome extensions. Specialized in downloading images naming in order, from multiple tabs into separate folders.
