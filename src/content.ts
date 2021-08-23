@@ -20,17 +20,16 @@ function downloadImage(image: AppImage) {
         method: 'dl-blob-via-background',
         value: image,
       });
-      console.log(image.src);
+      console.log(`[${new Date()}] ${image.src}`);
     }
   };
   xhr.onloadend = (_) => {
-    if (xhr.status == 404 || xhr.status == 0) {
+    if (xhr.status != 200) {
       chrome.runtime.sendMessage({ method: 'dl-failed' });
     }
   };
   xhr.ontimeout = (_) => {
     chrome.runtime.sendMessage({ method: 'dl-failed' });
-    console.error(image.src);
   };
   xhr.open('GET', image.src, true);
   xhr.send();

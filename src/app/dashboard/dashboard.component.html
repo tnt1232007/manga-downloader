@@ -1,18 +1,18 @@
 <ngb-tabset #t="ngbTabset" (tabChange)="tabChanged($event)">
   <ngb-tab id="newTab" title="New">
     <ng-template ngbTabContent>
-      <ng-container *ngTemplateOutlet="newTabsTemplate; context: {$implicit: newTabs}"></ng-container>
+      <ng-container *ngTemplateOutlet="newTabsTemplate; context: { $implicit: newTabs }"></ng-container>
     </ng-template>
   </ngb-tab>
   <ngb-tab id="ongoingTab" title="Ongoing">
     <ng-template ngbTabContent>
-      <ng-container *ngTemplateOutlet="displayTabsTemplate; context: {$implicit: ongoingTabs}"></ng-container>
+      <ng-container *ngTemplateOutlet="displayTabsTemplate; context: { $implicit: ongoingTabs }"></ng-container>
       <button *ngIf="ongoingTabs.length" type="button" class="btn btn-lg btn-primary btn-block" (click)="abortOngoing()">Clear</button>
     </ng-template>
   </ngb-tab>
   <ngb-tab id="historyTab" title="History">
     <ng-template ngbTabContent>
-      <ng-container *ngTemplateOutlet="displayTabsTemplate; context: {$implicit: completedTabs}"></ng-container>
+      <ng-container *ngTemplateOutlet="displayTabsTemplate; context: { $implicit: completedTabs }"></ng-container>
       <button *ngIf="completedTabs.length" type="button" class="btn btn-lg btn-primary btn-block" (click)="clearHistory()">Clear</button>
     </ng-template>
   </ngb-tab>
@@ -24,13 +24,15 @@
 </ngb-tabset>
 
 <ng-template #newTabsTemplate let-tabs>
-  <form (ngSubmit)="downloadNew(f)" #f="ngForm">
+  <form (ngSubmit)="downloadSelected(f)" #f="ngForm">
     <div class="btn-group-vertical btn-group-toggle w-100 mb-3">
-      <label *ngFor="let tab of tabs; let i = index;" class="list-group-item text-left w-100 btn-outline-primary" ngbButtonLabel>
-        <input type="checkbox" ngbButton name="tabs-{{tab.id}}" [disabled]="!tab.images || tab.images.length === 0" [(ngModel)]="tab.selected">
-        <h6 class="text-truncate">{{i+1}}. {{tab.title}}</h6>
-        <small class="d-block text-truncate"><a [href]="tab.url" target="_blank">{{tab.url}}</a></small>
-        <small *ngIf="tab.images">Found {{tab.images.length}} images</small>
+      <label *ngFor="let tab of tabs; let i = index" class="list-group-item text-left w-100 btn-outline-primary" ngbButtonLabel>
+        <input type="checkbox" ngbButton name="tabs-{{ tab.id }}" [disabled]="!tab.images || tab.images.length === 0" [(ngModel)]="tab.selected" />
+        <h6 class="text-truncate" [ngbTooltip]="tab.title" container="body">{{ i + 1 }}. {{ tab.title }}</h6>
+        <small class="d-block text-truncate"
+          ><a [href]="tab.url" target="_blank">{{ tab.url }}</a>
+        </small>
+        <small *ngIf="tab.images">Found {{ tab.images.length }} images</small>
         <small *ngIf="!tab.images">Computing...</small>
       </label>
     </div>
@@ -38,7 +40,12 @@
       <div class="col">
         <button type="button" class="btn btn-lg btn-secondary btn-block" (click)="refreshNew()">Refresh</button>
       </div>
-      <div class="col" *ngIf="tabs.length">
+    </div>
+    <div class="form-row mb-3" *ngIf="filterSelected(tabs).length">
+      <div class="col">
+        <button type="button" class="btn btn-lg btn-danger btn-block" (click)="reloadSelected()">Reload</button>
+      </div>
+      <div class="col">
         <button type="submit" class="btn btn-lg btn-primary btn-block">Download</button>
       </div>
     </div>
@@ -46,12 +53,43 @@
 </ng-template>
 
 <ng-template #displayTabsTemplate let-tabs>
-  <div class="btn-group-vertical w-100 mb-3">
-    <label *ngFor="let tab of tabs; let i = index;" class="list-group-item text-left w-100">
-      <h6 class="text-truncate">{{i+1}}. {{tab.title}}</h6>
-      <small class="d-block text-truncate"><a [href]="tab.url" target="_blank">{{tab.url}}</a></small>
-      <ngb-progressbar *ngIf="tab.progress" type="success" [value]="tab.progress.loaded*100/tab.progress.total" [striped]="true" [animated]="tab.progress.loaded != tab.progress.total">{{tab.progress.loaded}}/{{tab.progress.total}}</ngb-progressbar>
-      <ngb-progressbar *ngIf="!tab.progress" type="warning" [value]="100" [striped]="true" [animated]="true">Queue</ngb-progressbar>
-    </label>
-  </div>
+  <ngb-accordion #acc="ngbAccordion" [closeOthers]="true">
+    <ngb-panel id="ngb-panel-{{ i + 1 }}" *ngFor="let tab of tabs; let i = index">
+      <ng-template ngbPanelHeader>
+        <label class="text-left w-100">
+          <div class="d-flex justify-content-between">
+            <h6 class="text-truncate m-0" [ngbTooltip]="tab.title" container="body">{{ tab.id }}. {{ tab.title }}</h6>
+            <button ngbPanelToggle class="btn btn-link btn-sm p-0 text-sm"><i class="bi bi-chevron-expand"></i></button>
+          </div>
+          <small class="d-block text-truncate">
+            <a [href]="tab.url" target="_blank">{{ tab.url }}</a>
+          </small>
+          <ngb-progressbar
+            *ngIf="tab.progress"
+            [type]="filterError(tab.images).length ? 'danger' : filterQueued(tab.images).length ? 'warning' : 'success'"
+            [value]="((filterDownloaded(tab.images).length) * 100) / tab.progress.total"
+            [striped]="true"
+            [animated]="tab.progress.loaded != tab.progress.total"
+            >{{ filterDownloaded(tab.images).length }}/{{ tab.progress.total }}
+          </ngb-progressbar>
+          <ngb-progressbar *ngIf="!tab.progress" type="secondary" [value]="100" [striped]="true" [animated]="true">Queue</ngb-progressbar>
+        </label>
+      </ng-template>
+      <ng-template ngbPanelContent>
+        <div class="card-group row m-0">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item" *ngFor="let image of tab.images">
+              <div class="d-flex justify-content-between">
+                <small class="text-truncate">{{ image.name }}</small>
+                <small [ngClass]="image.status == 0 ? 'text-info' : image.status == 1 ? 'text-warning' : image.status == 2 ? 'text-success' : image.status == 3 ? 'text-danger' : ''">
+                  {{ image.status == 0 ? 'New' : image.status == 1 ? 'Queued' : image.status == 2 ? 'Downloaded' : image.status == 3 ? 'Failed' : '' }}
+                </small>
+              </div>
+              <small><a [href]="image.src">{{ image.src }}</a></small>
+            </li>
+          </ul>
+        </div>
+      </ng-template>
+    </ngb-panel>
+  </ngb-accordion>
 </ng-template>

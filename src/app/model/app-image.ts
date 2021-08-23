@@ -18,6 +18,7 @@ export class AppImage {
   type: ImageType;
   src: string;
   data: any;
+  index: number;
   name: string;
   width: number;
   height: number;

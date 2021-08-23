@@ -94,7 +94,7 @@ function downloadImage() {
     ) => {
       const folderRegEx = /[^A-Za-z0-9-_.,'ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệếỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ ]/g;
       const folderName = tab.title.replace(folderRegEx, '');
-      const indexStr = (imageIndex + 1).toString().padStart(3, '0');
+      const indexStr = (image.index + 1).toString().padStart(3, '0');
       image.name = `${indexStr}_${image.name || item.filename}`;
       const suggestName = tab.images.length > 1 ? `${folderName}/${image.name}` : `${folderName}_${image.name}`;
       return suggest({ filename: suggestName });
