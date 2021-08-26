@@ -1,13 +1,14 @@
 {
   "name": "manga-downloader",
   "displayName": "Manga Downloader",
-  "version": "2.9.0",
+  "version": "3.0.0",
   "author": {
     "name": "TNT",
     "email": "tnt1232007+support@gmail.com",
     "url": "https://chrome.google.com/webstore/detail/manga-downloader/dcaaabmopjlkogkeahlbehpnppgleahf"
   },
   "scripts": {
+    "clean": "rimraf dist",
     "build-ng": "ng build",
     "build-tsc": "tsc --target esnext --outDir dist --sourceMap @tsfiles.txt",
     "build": "concurrently \"npm:build-*\"",

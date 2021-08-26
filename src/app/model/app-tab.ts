@@ -1,5 +1,3 @@
-/// <reference types="chrome"/>
-
 import { AppImage } from './app-image';
 
 export class AppTab {
@@ -10,6 +8,7 @@ export class AppTab {
   selected: boolean;
   images: AppImage[];
   progress: ProgressEventInit;
+  message: string;
 
   constructor(tab: chrome.tabs.Tab) {
     this.id = tab.id;

@@ -28,7 +28,7 @@
     <div class="btn-group-vertical btn-group-toggle w-100 mb-3">
       <label *ngFor="let tab of tabs; let i = index" class="list-group-item text-left w-100 btn-outline-primary" ngbButtonLabel>
         <input type="checkbox" ngbButton name="tabs-{{ tab.id }}" [disabled]="!tab.images || tab.images.length === 0" [(ngModel)]="tab.selected" />
-        <h6 class="text-truncate" [ngbTooltip]="tab.title" container="body">{{ i + 1 }}. {{ tab.title }}</h6>
+        <h6 class="text-truncate" [ngbTooltip]="tab.title" [openDelay]="700" container="body">{{ i + 1 }}. {{ tab.title }}</h6>
         <small class="d-block text-truncate"
           ><a [href]="tab.url" target="_blank">{{ tab.url }}</a>
         </small>
@@ -58,12 +58,10 @@
       <ng-template ngbPanelHeader>
         <label class="text-left w-100">
           <div class="d-flex justify-content-between">
-            <h6 class="text-truncate m-0" [ngbTooltip]="tab.title" container="body">{{ tab.id }}. {{ tab.title }}</h6>
+            <h6 class="text-truncate m-0" [ngbTooltip]="tab.title" [openDelay]="700" container="body">{{ tab.id }}. {{ tab.title }}</h6>
             <button ngbPanelToggle class="btn btn-link btn-sm p-0 text-sm"><i class="bi bi-chevron-expand"></i></button>
           </div>
-          <small class="d-block text-truncate">
-            <a [href]="tab.url" target="_blank">{{ tab.url }}</a>
-          </small>
+          <a class="d-block text-truncate" [href]="tab.url" target="_blank"><small [ngbTooltip]="tab.url" [openDelay]="700" container="body">{{ tab.url }}</small></a>
           <ngb-progressbar
             *ngIf="tab.progress"
             [type]="filterError(tab.images).length ? 'danger' : filterQueued(tab.images).length ? 'warning' : 'success'"
@@ -76,19 +74,21 @@
         </label>
       </ng-template>
       <ng-template ngbPanelContent>
-        <div class="card-group row m-0">
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item" *ngFor="let image of tab.images">
-              <div class="d-flex justify-content-between">
-                <small class="text-truncate">{{ image.name }}</small>
-                <small [ngClass]="image.status == 0 ? 'text-info' : image.status == 1 ? 'text-warning' : image.status == 2 ? 'text-success' : image.status == 3 ? 'text-danger' : ''">
-                  {{ image.status == 0 ? 'New' : image.status == 1 ? 'Queued' : image.status == 2 ? 'Downloaded' : image.status == 3 ? 'Failed' : '' }}
-                </small>
-              </div>
-              <small><a [href]="image.src">{{ image.src }}</a></small>
-            </li>
-          </ul>
-        </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item" *ngIf="tab.message"><div class="alert alert-warning"><small>{{ tab.message }}</small></div></li>
+          <li class="list-group-item" *ngFor="let image of tab.images">
+            <div class="d-flex justify-content-between">
+              <small class="text-truncate" [ngbTooltip]="image.name" [openDelay]="700" container="body">{{ image.name }}</small>
+              <small [ngClass]="image.status == 0 ? 'text-info' : image.status == 1 ? 'text-warning' : image.status == 2 ? 'text-success' : image.status == 3 ? 'text-danger' : ''">
+                {{ image.status == 0 ? 'New' : image.status == 1 ? 'Queued' : image.status == 2 ? 'Downloaded' : image.status == 3 ? 'Failed' : '' }}
+              </small>
+            </div>
+            <div class="d-flex flex-nowrap justify-content-between align-items-center">
+              <a class="text-truncate" [href]="image.src" target="_blank" [ngbTooltip]="image.src" [openDelay]="700" container="body"><small>{{ image.src }}</small></a>
+              <button class="btn btn-link btn-sm" (click)="downloadUrl(tab, image)"><i class="bi bi-download"></i></button>
+            </div>
+          </li>
+        </ul>
       </ng-template>
     </ngb-panel>
   </ngb-accordion>

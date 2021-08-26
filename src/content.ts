@@ -1,14 +1,16 @@
-import { AppRequest } from './app/model/app-request';
+import { AppTab } from './app/model/app-tab';
 import { AppImage } from './app/model/app-image';
+import { AppRequest } from './app/model/app-request';
 
 chrome.runtime.onMessage.addListener((request: AppRequest, _sender, _sendResponse) => {
   if (request.method === 'dl-xhr-via-content' && request.value) {
-    const image: AppImage = request.value;
-    downloadImage(image);
+    const tab: AppTab = request.value.tab;
+    const image: AppImage = request.value.image;
+    downloadImage(tab, image);
   }
 });
 
-function downloadImage(image: AppImage) {
+function downloadImage(tab: AppTab, image: AppImage) {
   const xhr = new XMLHttpRequest();
   xhr.responseType = 'blob';
   xhr.timeout = 30000;
@@ -18,18 +20,18 @@ function downloadImage(image: AppImage) {
       image.data = URL.createObjectURL(xhr.response);
       chrome.runtime.sendMessage({
         method: 'dl-blob-via-background',
-        value: image,
+        value: { tab, image },
       });
       console.log(`[${new Date()}] ${image.src}`);
     }
   };
   xhr.onloadend = (_) => {
     if (xhr.status != 200) {
-      chrome.runtime.sendMessage({ method: 'dl-failed' });
+      chrome.runtime.sendMessage({ method: 'dl-failed', value: { tab, image } });
     }
   };
   xhr.ontimeout = (_) => {
-    chrome.runtime.sendMessage({ method: 'dl-failed' });
+    chrome.runtime.sendMessage({ method: 'dl-failed', value: { tab, image } });
   };
   xhr.open('GET', image.src, true);
   xhr.send();

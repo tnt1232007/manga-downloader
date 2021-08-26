@@ -1,12 +1,12 @@
 import { AppTab } from './app/model/app-tab';
-import { ImageStatus } from './app/model/app-image';
+import { AppImage, ImageStatus } from './app/model/app-image';
 import { AppRequest } from './app/model/app-request';
 
 let allTabs: AppTab[];
 let imageIndex: number = 0;
 let isDownloading: boolean = false;
 let failedHosts = {};
-chrome.storage.local.get(['history'], result => {
+chrome.storage.local.get(['history'], (result) => {
   allTabs = result['history'] || [];
   chrome.runtime.onMessage.addListener(function (request: AppRequest, _sender, _sendResponse) {
     if (request.method === 'init') {
@@ -18,21 +18,29 @@ chrome.storage.local.get(['history'], result => {
         isDownloading = true;
         processNextImage();
       }
+    } else if (request.method === 'downloadManual' && request.value) {
+      const original = extractRequest(request);
+      chrome.tabs.get(original.tab.id, (found) => {
+        if (found) {
+          downloadTabImage(original.tab, original.image);
+        } else {
+          downloadTabImageByUrl(original.tab, original.image);
+        }
+      });
     } else if (request.method === 'abortOngoing') {
-      imageIndex = 0;
       isDownloading = false;
-      allTabs = allTabs.filter(tab => tab.progress && tab.progress.loaded === tab.progress.total);
+      allTabs = allTabs.filter((tab) => tab.progress && tab.progress.loaded === tab.progress.total);
     } else if (request.method === 'clearHistory') {
-      allTabs = allTabs.filter(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
+      allTabs = allTabs.filter((tab) => !(tab.progress && tab.progress.loaded === tab.progress.total));
       chrome.storage.local.remove('history');
     } else if (request.method === 'dl-blob-via-background' && request.value) {
-      const tab = getUnprocessedTab();
-      tab.images[imageIndex].name = request.value.name;
-      tab.images[imageIndex].data = request.value.data;
-      downloadImage();
-    } else if (request.method === 'dl-failed') {
-      const tab = getUnprocessedTab();
-      tab.images[imageIndex].status = ImageStatus.FAILED;
+      const original = extractRequest(request);
+      original.image.name = request.value.image.name;
+      original.image.data = request.value.image.data;
+      downloadTabImage(original.tab, original.image);
+    } else if (request.method === 'dl-failed' && request.value) {
+      const original = extractRequest(request);
+      original.image.status = ImageStatus.FAILED;
       imageIndex += 1;
       processNextImage();
     }
@@ -41,58 +49,71 @@ chrome.storage.local.get(['history'], result => {
 
 let retry = 0;
 function processNextImage() {
-  const tab = getUnprocessedTab();
   if (!isDownloading) {
     return;
   }
 
+  // Find the in progress tab, or new tab
+  const tab = allTabs.filter((tab) => tab.progress).find((tab) => tab.progress.loaded < tab.progress.total) || allTabs.find((tab) => !tab.progress);
   if (!tab) {
     imageIndex = 0;
     isDownloading = false;
+    chrome.runtime.sendMessage({ method: 'tabsChanged', value: allTabs });
     return;
   }
 
   tab.progress = { loaded: imageIndex, total: tab.images.length };
   chrome.runtime.sendMessage({ method: 'tabsChanged', value: allTabs });
-  if (tab.progress.loaded >= tab.progress.total) {
+  if (tab.progress.loaded === tab.progress.total) {
+    // Tab is finished, save history and fetch next tab
+    chrome.storage.local.get(['settings'], (result) => {
+      const maxHistory = result['settings']['maxHistory'] || 100;
+      allTabs = allTabs.filter((_, index) => index >= allTabs.length - maxHistory);
+      chrome.storage.local.set({ history: allTabs.filter((tab) => tab.progress && tab.progress.loaded === tab.progress.total) });
+    });
     imageIndex = 0;
     closeTab(tab);
     processNextImage();
-    retry = 0;
   } else {
-    // Check if tab still opened
-    chrome.tabs.get(tab.id, found => {
+    chrome.tabs.get(tab.id, (found) => {
       if (found) {
-        downloadImage();
+        // Tab still opened, good to go
+        downloadTabImage(tab, tab.images[imageIndex]);
+        retry = 0;
       } else {
-        // Tab is really closed unexpectedly, remove it and continue
-        if (retry >= 10) {
-          allTabs = allTabs.filter(t => t.id !== tab.id);
+        if (retry < 10) {
+          // Tab cannot be edited right now (user may be dragging a tab), wait for a second and retry
+          setTimeout(() => {
+            processNextImage();
+            retry += 1;
+          }, 1000);
+        } else {
+          // Retry 10 times already, tab is really closed, skip it and continue
+          allTabs = allTabs.filter((t) => t.id !== tab.id);
           retry = 0;
         }
-        // Workaround for Error "Tabs cannot be edited right now (user may be dragging a tab)"
-        setTimeout(() => {
-          processNextImage();
-          retry += 1;
-        }, 1000);
       }
     });
   }
 }
 
-function downloadImage() {
-  const tab = getUnprocessedTab();
-  const image = tab.images[imageIndex];
+function extractRequest(request: AppRequest) {
+  const requestTab = request.value.tab;
+  const tab = allTabs.find((t) => t.id == requestTab.id) || allTabs.find((t) => t.url == requestTab.url);
+  const image = tab.images[request.value.image.index];
+  return { tab, image };
+}
+
+function downloadTabImage(tab: AppTab, image: AppImage) {
   const sourceURL = new URL(image.data || image.src);
   image.status = ImageStatus.QUEUED;
   if (failedHosts[sourceURL.host] > 3) {
-    chrome.tabs.sendMessage(tab.id, { method: 'dl-xhr-via-content', value: image });
+    tab.message = 'This site blocks background downloading. Please keep its tabs to manual download.';
+    chrome.tabs.sendMessage(tab.id, { method: 'dl-xhr-via-content', value: { tab, image } });
   } else {
-    const determiningFilenameCb = (
-      item: chrome.downloads.DownloadItem,
-      suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void
-    ) => {
-      const folderRegEx = /[^A-Za-z0-9-_.,'ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệếỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ ]/g;
+    const determiningFilenameCb = (item: chrome.downloads.DownloadItem, suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void) => {
+      const folderRegEx =
+        /[^A-Za-z0-9-_.,'ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệếỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ ]/g;
       const folderName = tab.title.replace(folderRegEx, '');
       const indexStr = (image.index + 1).toString().padStart(3, '0');
       image.name = `${indexStr}_${image.name || item.filename}`;
@@ -102,13 +123,13 @@ function downloadImage() {
     if (!chrome.downloads.onDeterminingFilename.hasListeners()) {
       chrome.downloads.onDeterminingFilename.addListener(determiningFilenameCb);
     }
-    chrome.downloads.download({ url: sourceURL.href, filename: image.name }, id => {
+    chrome.downloads.download({ url: sourceURL.href, filename: image.name }, (id) => {
       const changedCb = (delta: chrome.downloads.DownloadDelta) => {
         if (delta.error) {
           // If any error, try to download xhr in content script
           chrome.downloads.onChanged.removeListener(changedCb);
           chrome.downloads.onDeterminingFilename.removeListener(determiningFilenameCb);
-          chrome.tabs.sendMessage(tab.id, { method: 'dl-xhr-via-content', value: image });
+          chrome.tabs.sendMessage(tab.id, { method: 'dl-xhr-via-content', value: { tab, image } });
           failedHosts[sourceURL.host] = failedHosts[sourceURL.host] ? failedHosts[sourceURL.host] + 1 : 1;
         } else if (delta.id === id && delta.filename && !delta.filename.previous && delta.filename.current) {
           chrome.downloads.onChanged.removeListener(changedCb);
@@ -123,23 +144,23 @@ function downloadImage() {
   }
 }
 
-function getUnprocessedTab(): AppTab {
-  const unprocessedTab = allTabs.find(tab => !(tab.progress && tab.progress.loaded === tab.progress.total));
-  if (!unprocessedTab) {
-    chrome.storage.local.get(['settings'], result => {
-      const maxHistory = result['settings']['maxHistory'] || 100;
-      allTabs = allTabs.filter((_, index) => index >= allTabs.length - maxHistory);
-      chrome.storage.local.set({ history: allTabs });
-    });
-  }
-  return unprocessedTab;
-}
-
 function closeTab(tab: AppTab): void {
-  chrome.storage.local.get(['settings'], result => {
+  chrome.storage.local.get(['settings'], (result) => {
     if (result['settings']['closeAfter']) {
       if (tab.images.some((image) => image.status == ImageStatus.FAILED)) return;
       chrome.tabs.remove(tab.id);
     }
+  });
+}
+
+function downloadTabImageByUrl(tab: AppTab, image: AppImage) {
+  chrome.tabs.query({ currentWindow: true }, (tabs) => {
+    const openTab = tabs.find((t) => t.url === tab.url);
+    if (!openTab) {
+      console.error('Please open the page to download images from this site');
+      return;
+    }
+    tab.id = openTab.id;
+    downloadTabImage(tab, image);
   });
 }

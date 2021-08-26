@@ -47,20 +47,25 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  public filterSelected(tabs: AppTab[]) : AppTab[] { 
+  public filterSelected(tabs: AppTab[]): AppTab[] {
     return tabs.filter((tab) => tab.selected);
   }
 
-  public filterError(images: AppImage[]) : AppImage[] { 
+  public filterError(images: AppImage[]): AppImage[] {
     return images.filter((image) => image.status == ImageStatus.FAILED);
   }
 
-  public filterDownloaded(images: AppImage[]) : AppImage[] { 
+  public filterDownloaded(images: AppImage[]): AppImage[] {
     return images.filter((image) => image.status == ImageStatus.DOWNLOADED);
   }
 
-  public filterQueued(images: AppImage[]) : AppImage[] { 
+  public filterQueued(images: AppImage[]): AppImage[] {
     return images.filter((image) => image.status == ImageStatus.QUEUED || image.status == ImageStatus.NEW);
+  }
+
+  public downloadUrl(tab: AppTab, image: AppImage) {
+    image.data = null;
+    chrome.runtime.sendMessage({ method: 'downloadManual', value: { tab, image } });
   }
 
   public refreshNew() {
@@ -73,7 +78,7 @@ export class DashboardComponent implements OnInit {
 
   public downloadSelected(_form: NgForm) {
     const selectedTabs = this.filterSelected(this.newTabs);
-    selectedTabs.forEach((tab) => tab.images.forEach((image) => image.status = ImageStatus.QUEUED));
+    selectedTabs.forEach((tab) => tab.images.forEach((image) => (image.status = ImageStatus.QUEUED)));
     chrome.runtime.sendMessage({ method: 'downloadNew', value: selectedTabs });
     this.tabSet.select('ongoingTab');
   }
@@ -111,7 +116,7 @@ export class DashboardComponent implements OnInit {
         const allTabs: AppTab[] = request.value;
         const isTabCompleted = (tab: AppTab) => tab.progress && tab.progress.loaded === tab.progress.total;
         this.ngZone.run(() => {
-          this.newTabs = this.newTabs.filter((tab: AppTab) => !allTabs.some((tab_: AppTab) => tab_.id === tab.id && tab_.url === tab.url));
+          this.newTabs = this.newTabs.filter((tab: AppTab) => !allTabs.some((t: AppTab) => t.url === tab.url));
           this.ongoingTabs = allTabs.filter((tab: AppTab) => !isTabCompleted(tab));
           this.completedTabs = allTabs.filter((tab: AppTab) => isTabCompleted(tab)).reverse();
 
@@ -132,9 +137,7 @@ export class DashboardComponent implements OnInit {
           return;
         }
         this.ngZone.run(() => {
-          this.newTabs = tabs
-            .filter((tab) => !!tab.url && (tab.url.startsWith('http') || tab.url.startsWith('https')))
-            .map((tab) => new AppTab(tab));
+          this.newTabs = tabs.filter((tab) => !!tab.url && (tab.url.startsWith('http') || tab.url.startsWith('https'))).map((tab) => new AppTab(tab));
         });
 
         const sizeFilter = (image: AppImage) => (!image.height && !image.width) || (image.height > settings['minHeight'] && image.width > settings['minWidth']);
@@ -176,6 +179,6 @@ export class DashboardComponent implements OnInit {
   }
 
   private loadHistory() {
-    chrome.storage.local.get(['history'], (result) => this.ngZone.run(() => (this.completedTabs = result['history'].reverse() || [])));
+    chrome.storage.local.get(['history'], (result) => this.ngZone.run(() => (this.completedTabs = (result['history'] || []).reverse())));
   }
 }

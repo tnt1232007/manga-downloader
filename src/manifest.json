@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Manga Downloader",
-  "version": "2.9",
+  "version": "3.0",
   "description": "Downloading images naming in order, from multiple tabs into separate folders",
   "icons": {
     "16": "assets/Icon-16.png",
