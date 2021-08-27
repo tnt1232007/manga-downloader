@@ -7,13 +7,13 @@
   <ngb-tab id="ongoingTab" title="Ongoing">
     <ng-template ngbTabContent>
       <ng-container *ngTemplateOutlet="displayTabsTemplate; context: { $implicit: ongoingTabs }"></ng-container>
-      <button *ngIf="ongoingTabs.length" type="button" class="btn btn-lg btn-primary btn-block" (click)="abortOngoing()">Clear</button>
+      <button *ngIf="ongoingTabs.length" type="button" class="btn btn-lg btn-primary btn-block mt-3" (click)="abortOngoing()">Clear</button>
     </ng-template>
   </ngb-tab>
   <ngb-tab id="historyTab" title="History">
     <ng-template ngbTabContent>
       <ng-container *ngTemplateOutlet="displayTabsTemplate; context: { $implicit: completedTabs }"></ng-container>
-      <button *ngIf="completedTabs.length" type="button" class="btn btn-lg btn-primary btn-block" (click)="clearHistory()">Clear</button>
+      <button *ngIf="completedTabs.length" type="button" class="btn btn-lg btn-primary btn-block mt-3" (click)="clearHistory()">Clear</button>
     </ng-template>
   </ngb-tab>
   <ngb-tab id="settingsTab" title="Settings">
@@ -25,7 +25,7 @@
 
 <ng-template #newTabsTemplate let-tabs>
   <form (ngSubmit)="downloadSelected(f)" #f="ngForm">
-    <div class="btn-group-vertical btn-group-toggle w-100 mb-3">
+    <div class="btn-group-vertical btn-group-toggle w-100">
       <label *ngFor="let tab of tabs; let i = index" class="list-group-item text-left w-100 btn-outline-primary" ngbButtonLabel>
         <input type="checkbox" ngbButton name="tabs-{{ tab.id }}" [disabled]="!tab.images || tab.images.length === 0" [(ngModel)]="tab.selected" />
         <h6 class="text-truncate" [ngbTooltip]="tab.title" [openDelay]="700" container="body">{{ i + 1 }}. {{ tab.title }}</h6>
@@ -36,18 +36,11 @@
         <small *ngIf="!tab.images">Computing...</small>
       </label>
     </div>
-    <div class="form-row mb-3">
-      <div class="col">
-        <button type="button" class="btn btn-lg btn-secondary btn-block" (click)="refreshNew()">Refresh</button>
-      </div>
-    </div>
-    <div class="form-row mb-3" *ngIf="filterSelected(tabs).length">
-      <div class="col">
-        <button type="button" class="btn btn-lg btn-danger btn-block" (click)="reloadSelected()">Reload</button>
-      </div>
-      <div class="col">
-        <button type="submit" class="btn btn-lg btn-primary btn-block">Download</button>
-      </div>
+    <button type="button" class="btn btn-lg btn-secondary btn-block mt-3" (click)="refreshNew()">Refresh</button>
+    <div class="d-flex mt-3" *ngIf="filterSelected(tabs).length">
+      <button type="button" class="btn btn-lg btn-danger btn-block" (click)="reloadSelected()">Reload</button>
+      <span></span>
+      <button type="submit" class="btn btn-lg btn-primary btn-block">Download</button>
     </div>
   </form>
 </ng-template>

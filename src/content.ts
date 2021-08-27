@@ -22,7 +22,7 @@ function downloadImage(tab: AppTab, image: AppImage) {
         method: 'dl-blob-via-background',
         value: { tab, image },
       });
-      console.log(`[${new Date()}] ${image.src}`);
+      console.log(`[${new Date()}] [${image.index}] ${image.src}`);
     }
   };
   xhr.onloadend = (_) => {

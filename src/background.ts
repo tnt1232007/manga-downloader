@@ -14,6 +14,12 @@ chrome.storage.local.get(['history'], (result) => {
     } else if (request.method === 'downloadNew' && request.value) {
       const tabs: AppTab[] = request.value;
       allTabs.push(...tabs);
+      let maxIndex = allTabs.reduce((left, right) => ((left.index || 0) > (right.index || 0) ? left : right)).index || 0;
+      allTabs.forEach((tab) => {
+        if (tab.index) return;
+        maxIndex += 1;
+        tab.index = maxIndex;
+      });
       if (!isDownloading) {
         isDownloading = true;
         processNextImage();
@@ -50,6 +56,13 @@ chrome.storage.local.get(['history'], (result) => {
 let retry = 0;
 function processNextImage() {
   if (!isDownloading) {
+    chrome.runtime.sendMessage({ method: 'tabsChanged', value: allTabs });
+    chrome.storage.local.get(['settings'], (result) => {
+      const maxHistory = result['settings']['maxHistory'] || 100;
+      allTabs = allTabs.filter((_, index) => index >= allTabs.length - maxHistory);
+      chrome.storage.local.set({ history: allTabs.filter((tab) => tab.progress && tab.progress.loaded === tab.progress.total) });
+    });
+    imageIndex = 0;
     return;
   }
 
@@ -58,7 +71,6 @@ function processNextImage() {
   if (!tab) {
     imageIndex = 0;
     isDownloading = false;
-    chrome.runtime.sendMessage({ method: 'tabsChanged', value: allTabs });
     return;
   }
 
@@ -108,46 +120,46 @@ function downloadTabImage(tab: AppTab, image: AppImage) {
   const sourceURL = new URL(image.data || image.src);
   image.status = ImageStatus.QUEUED;
   if (failedHosts[sourceURL.host] > 3) {
-    tab.message = 'This site blocks background downloading. Please keep its tabs to manual download.';
+    tab.message = 'This site blocks background downloading. Please keep or re-opened the tab for manual download.';
     chrome.tabs.sendMessage(tab.id, { method: 'dl-xhr-via-content', value: { tab, image } });
   } else {
-    const determiningFilenameCb = (item: chrome.downloads.DownloadItem, suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void) => {
-      const folderRegEx =
-        /[^A-Za-z0-9-_.,'ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệếỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ ]/g;
+    const filenameCallBack = (item: chrome.downloads.DownloadItem, suggest: (suggestion?: chrome.downloads.DownloadFilenameSuggestion) => void) => {
+      const folderRegEx = /[<>:"/|?*\\]/g;
       const folderName = tab.title.replace(folderRegEx, '');
       const indexStr = (image.index + 1).toString().padStart(3, '0');
       image.name = `${indexStr}_${image.name || item.filename}`;
       const suggestName = tab.images.length > 1 ? `${folderName}/${image.name}` : `${folderName}_${image.name}`;
       return suggest({ filename: suggestName });
     };
+    const changedCallBack = (delta: chrome.downloads.DownloadDelta) => {
+      if (delta.error) {
+        // If any error, try to download xhr in content script
+        chrome.downloads.onChanged.removeListener(changedCallBack);
+        chrome.downloads.onDeterminingFilename.removeListener(filenameCallBack);
+        chrome.tabs.sendMessage(tab.id, { method: 'dl-xhr-via-content', value: { tab, image } });
+        failedHosts[sourceURL.host] = failedHosts[sourceURL.host] ? failedHosts[sourceURL.host] + 1 : 1;
+      } else if (delta.filename && delta.filename.current.endsWith(image.name) ) {
+        chrome.downloads.onChanged.removeListener(changedCallBack);
+        chrome.downloads.onDeterminingFilename.removeListener(filenameCallBack);
+        image.status = ImageStatus.DOWNLOADED;
+        imageIndex += 1;
+        processNextImage();
+      }
+    };
     if (!chrome.downloads.onDeterminingFilename.hasListeners()) {
-      chrome.downloads.onDeterminingFilename.addListener(determiningFilenameCb);
+      chrome.downloads.onDeterminingFilename.addListener(filenameCallBack);
     }
-    chrome.downloads.download({ url: sourceURL.href, filename: image.name }, (id) => {
-      const changedCb = (delta: chrome.downloads.DownloadDelta) => {
-        if (delta.error) {
-          // If any error, try to download xhr in content script
-          chrome.downloads.onChanged.removeListener(changedCb);
-          chrome.downloads.onDeterminingFilename.removeListener(determiningFilenameCb);
-          chrome.tabs.sendMessage(tab.id, { method: 'dl-xhr-via-content', value: { tab, image } });
-          failedHosts[sourceURL.host] = failedHosts[sourceURL.host] ? failedHosts[sourceURL.host] + 1 : 1;
-        } else if (delta.id === id && delta.filename && !delta.filename.previous && delta.filename.current) {
-          chrome.downloads.onChanged.removeListener(changedCb);
-          chrome.downloads.onDeterminingFilename.removeListener(determiningFilenameCb);
-          image.status = ImageStatus.DOWNLOADED;
-          imageIndex += 1;
-          processNextImage();
-        }
-      };
-      chrome.downloads.onChanged.addListener(changedCb);
-    });
+    if (!chrome.downloads.onChanged.hasListeners()) {
+      chrome.downloads.onChanged.addListener(changedCallBack);
+    }
+    chrome.downloads.download({ url: sourceURL.href, filename: image.name });
   }
 }
 
 function closeTab(tab: AppTab): void {
   chrome.storage.local.get(['settings'], (result) => {
     if (result['settings']['closeAfter']) {
-      if (tab.images.some((image) => image.status == ImageStatus.FAILED)) return;
+      if (tab.images.some((image) => image.status != ImageStatus.DOWNLOADED)) return;
       chrome.tabs.remove(tab.id);
     }
   });
